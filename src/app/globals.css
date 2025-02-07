@@ -4,40 +4,27 @@
  
 @layer base {
   :root {
-    /* Colores base */
-    --background: 0 0% 100%;
-    --foreground: 220 14% 10%;
-
-    /* Colores principales */
-    --primary: 220 13% 21%;
-    --primary-foreground: 220 14% 95%;
- 
-    --secondary: 220 14% 95%;
-    --secondary-foreground: 220 13% 21%;
- 
-    --accent: 220 100% 84%;
-    --accent-foreground: 220 13% 21%;
-
-    /* Utilidades */
-    --muted: 220 10% 40%;
-    --muted-foreground: 220 14% 95%;
- 
-    --card: 0 0% 100%;
-    --card-foreground: 220 14% 10%;
- 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 14% 10%;
- 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 220 14% 95%;
-
-    /* Elementos de interfaz */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 220 100% 84%;
- 
-    --radius: 0.3rem;
+    --primary: 220 14% 95%;
+    --secondary: 0 0% 15%;
+    --accent: 0 69% 42%;
+    --background: 0 0% 98%;
+    --text: 0 0% 20%;
+    
+    --font-sans: 'TAZUGANE GOTHIC', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
   }
+}
+
+ /* Estilos específicos para el tema japonés */
+ .wa-japanese-minimal {
+  /* Espaciado */
+  --spacing-unit: 2rem;
+  
+  /* Bordes */
+  --radius: 2px;
+  
+  /* Sombras suaves */
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
  
 @layer base {
@@ -47,4 +34,143 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer components {
+  .japanese-container {
+    @apply max-w-4xl mx-auto px-8 py-12;
+  }
+
+  .japanese-card {
+    @apply bg-white border border-gray-100 rounded-sm p-6 transition-shadow duration-300;
+  }
+
+  .japanese-button {
+    @apply px-6 py-2 bg-accent text-white rounded-sm transition-colors duration-300 hover:bg-accent/90;
+  }
+
+  .wa-theme {
+    /* Contenedores */
+    .container-wa {
+      @apply max-w-4xl mx-auto px-8 py-12;
+      border-left: 1px solid hsl(var(--secondary) / 0.1);
+    }
+
+    /* Tarjetas */
+    .card-wa {
+      @apply bg-white border border-gray-100 rounded-sm p-6;
+      box-shadow: 4px 4px 0 hsl(var(--secondary) / 0.1);
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0 hsl(var(--secondary) / 0.1);
+      }
+    }
+
+    .matrix-theme {
+    .card-wa {
+      @apply bg-black/50 border border-primary/50;
+      box-shadow: 0 0 10px hsl(var(--primary) / 0.2);
+      
+      &:hover {
+        box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+      }
+    }
+
+    .button-wa {
+      @apply border-primary text-primary;
+      text-shadow: 0 0 5px hsl(var(--primary) / 0.5);
+      
+      &:hover {
+        text-shadow: 0 0 10px hsl(var(--primary) / 0.8);
+      }
+    }
+
+    .text-wa {
+      font-family: var(--font-mono);
+      text-shadow: 0 0 5px hsl(var(--primary) / 0.3);
+    }
+  }
+
+    /* Botones */
+    .button-wa {
+      @apply px-6 py-2 bg-transparent border border-current;
+      transition: all 0.3s ease;
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: currentColor;
+        transition: width 0.3s ease;
+      }
+
+      &:hover::after {
+        width: 100%;
+      }
+    }
+
+    /* Inputs */
+    .input-wa {
+      @apply bg-transparent border-b border-current px-2 py-1;
+      transition: border-color 0.3s ease;
+
+      &:focus {
+        @apply outline-none border-accent;
+      }
+    }
+
+    /* Tipografía */
+    .heading-wa {
+      @apply font-medium tracking-wide;
+      font-family: var(--font-sans);
+    }
+
+    .text-wa {
+      @apply leading-relaxed;
+      font-family: var(--font-sans);
+    }
+
+    /* Decoraciones */
+    .decoration-dot {
+      position: relative;
+      &::before {
+        content: '・';
+        position: absolute;
+        left: -1em;
+      }
+    }
+  }
+
+  .matrix-theme {
+    .card-wa {
+      @apply bg-black/50 border border-primary/50;
+      box-shadow: 0 0 10px hsl(var(--primary) / 0.2);
+      
+      &:hover {
+        box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+      }
+    }
+
+    .button-wa {
+      @apply border-primary text-primary;
+      text-shadow: 0 0 5px hsl(var(--primary) / 0.5);
+      
+      &:hover {
+        text-shadow: 0 0 10px hsl(var(--primary) / 0.8);
+      }
+    }
+
+    .text-wa {
+      font-family: var(--font-mono);
+      text-shadow: 0 0 5px hsl(var(--primary) / 0.3);
+    }
+  }
+
+  
 }
