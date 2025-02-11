@@ -1,104 +1,165 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
+/* --------------------------------- */
+/* Variables y Configuración Base    */
+/* --------------------------------- */
 @layer base {
   :root {
+    /* Colores Base */
     --primary: 220 14% 95%;
     --secondary: 0 0% 15%;
     --accent: 0 69% 42%;
     --background: 0 0% 98%;
     --text: 0 0% 20%;
-    
+    --foreground: 0 0% 20%;
+
+    /* Tipografía Base */
     --font-sans: 'TAZUGANE GOTHIC', sans-serif;
     --font-mono: 'IBM Plex Mono', monospace;
+
+    /* UI Components Base */
+    --button-bg: var(--background);
+    --button-text: var(--text);
+    --button-border: var(--primary);
+    --button-hover: var(--secondary);
+    --button-glow: none;
+
+    /* Layout Base */
+    --spacing-unit: 1rem;
+    --radius: 4px;
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Japanese Minimal Theme */
+  :root[data-theme="wa-japanese-minimal"] {
+    /* Colores */
+    --primary: 220 14% 95%;
+    --secondary: 0 0% 15%;
+    --accent: 0 69% 42%;
+    --background: 0 0% 98%;
+    --text: 0 0% 20%;
+    --foreground: 0 0% 20%;
+
+    /* Tipografía */
+    --font-sans: 'TAZUGANE GOTHIC', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+
+    /* UI Components */
+    --button-bg: var(--background);
+    --button-text: var(--text);
+    --button-border: var(--accent);
+    --button-hover: hsl(var(--accent) / 0.1);
+    --button-glow: none;
+
+    /* Layout */
+    --spacing-unit: 2rem;
+    --radius: 2px;
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Matrix Theme */
+  :root[data-theme="matrix"] {
+    /* Colores */
+    --primary: 120 100% 50%;
+    --secondary: 120 100% 25%;
+    --accent: 120 100% 75%;
+    --background: 0 0% 0%;
+    --text: 120 100% 85%;
+    --foreground: 120 100% 85%;
+
+    /* Tipografía */
+    --font-sans: 'Press Start 2P', monospace;
+    --font-mono: 'Press Start 2P', monospace;
+
+    /* UI Components */
+    --button-bg: hsl(120 100% 25%);
+    --button-text: hsl(120 100% 95%);
+    --button-border: hsl(120 100% 50% / 0.5);
+    --button-hover: hsl(120 100% 30%);
+    --button-glow: 0 0 8px hsl(120 100% 75% / 0.8);
+
+    /* Layout */
+    --spacing-unit: 1rem;
+    --radius: 0px;
+    --shadow: 0 0 10px hsl(120 100% 50% / 0.2);
   }
 }
 
- /* Estilos específicos para el tema japonés */
- .wa-japanese-minimal {
-  /* Espaciado */
-  --spacing-unit: 2rem;
-  
-  /* Bordes */
-  --radius: 2px;
-  
-  /* Sombras suaves */
-  --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
- 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
+/* --------------------------------- */
+/* Estilos Base                      */
+/* --------------------------------- */
 @layer components {
-  .japanese-container {
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+  }
+
+  .theme-transition {
+    transition: 
+      background-color 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  /* Container Styles */
+  .container-wa {
     @apply max-w-4xl mx-auto px-8 py-12;
+    border-left: 1px solid hsl(var(--secondary) / 0.1);
   }
 
-  .japanese-card {
-    @apply bg-white border border-gray-100 rounded-sm p-6 transition-shadow duration-300;
+  /* Card Styles */
+  .card-wa {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--primary) / 0.2);
+    border-radius: var(--radius);
+    padding: var(--spacing-unit);
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
   }
 
-  .japanese-button {
-    @apply px-6 py-2 bg-accent text-white rounded-sm transition-colors duration-300 hover:bg-accent/90;
-  }
+  /* Button Styles */
+  .button-wa {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--button-border);
+    padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit);
+    border-radius: var(--radius);
+    text-shadow: var(--button-glow);
+    transition: all 0.3s ease;
 
-  .wa-theme {
-    /* Contenedores */
-    .container-wa {
-      @apply max-w-4xl mx-auto px-8 py-12;
-      border-left: 1px solid hsl(var(--secondary) / 0.1);
+    &:hover {
+      background-color: var(--button-hover);
     }
+  }
 
-    /* Tarjetas */
+  /* Text Styles */
+  .text-wa {
+    color: hsl(var(--text));
+    font-family: var(--font-sans);
+  }
+}
+
+/* --------------------------------- */
+/* Theme-Specific Modifications      */
+/* --------------------------------- */
+@layer components {
+  /* Japanese Minimal Specific */
+  [data-theme="wa-japanese-minimal"] {
     .card-wa {
-      @apply bg-white border border-gray-100 rounded-sm p-6;
       box-shadow: 4px 4px 0 hsl(var(--secondary) / 0.1);
-      transition: all 0.3s ease;
-
+      
       &:hover {
         transform: translate(-2px, -2px);
         box-shadow: 6px 6px 0 hsl(var(--secondary) / 0.1);
       }
     }
 
-    .matrix-theme {
-    .card-wa {
-      @apply bg-black/50 border border-primary/50;
-      box-shadow: 0 0 10px hsl(var(--primary) / 0.2);
-      
-      &:hover {
-        box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
-      }
-    }
-
     .button-wa {
-      @apply border-primary text-primary;
-      text-shadow: 0 0 5px hsl(var(--primary) / 0.5);
-      
-      &:hover {
-        text-shadow: 0 0 10px hsl(var(--primary) / 0.8);
-      }
-    }
-
-    .text-wa {
-      font-family: var(--font-mono);
-      text-shadow: 0 0 5px hsl(var(--primary) / 0.3);
-    }
-  }
-
-    /* Botones */
-    .button-wa {
-      @apply px-6 py-2 bg-transparent border border-current;
-      transition: all 0.3s ease;
-      position: relative;
-
       &::after {
         content: '';
         position: absolute;
@@ -114,42 +175,12 @@
         width: 100%;
       }
     }
-
-    /* Inputs */
-    .input-wa {
-      @apply bg-transparent border-b border-current px-2 py-1;
-      transition: border-color 0.3s ease;
-
-      &:focus {
-        @apply outline-none border-accent;
-      }
-    }
-
-    /* Tipografía */
-    .heading-wa {
-      @apply font-medium tracking-wide;
-      font-family: var(--font-sans);
-    }
-
-    .text-wa {
-      @apply leading-relaxed;
-      font-family: var(--font-sans);
-    }
-
-    /* Decoraciones */
-    .decoration-dot {
-      position: relative;
-      &::before {
-        content: '・';
-        position: absolute;
-        left: -1em;
-      }
-    }
   }
 
-  .matrix-theme {
+  /* Matrix Specific */
+  [data-theme="matrix"] {
     .card-wa {
-      @apply bg-black/50 border border-primary/50;
+      border-color: hsl(var(--primary) / 0.5);
       box-shadow: 0 0 10px hsl(var(--primary) / 0.2);
       
       &:hover {
@@ -157,20 +188,14 @@
       }
     }
 
+    .text-wa {
+      text-shadow: 0 0 5px hsl(var(--primary) / 0.3);
+    }
+
     .button-wa {
-      @apply border-primary text-primary;
-      text-shadow: 0 0 5px hsl(var(--primary) / 0.5);
-      
       &:hover {
         text-shadow: 0 0 10px hsl(var(--primary) / 0.8);
       }
     }
-
-    .text-wa {
-      font-family: var(--font-mono);
-      text-shadow: 0 0 5px hsl(var(--primary) / 0.3);
-    }
   }
-
-  
 }

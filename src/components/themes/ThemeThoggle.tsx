@@ -2,7 +2,7 @@
 "use client";
 
 import { useTheme } from "./ThemeProvider";
-import { themes } from "@/lib/themes";
+import { themes } from "@/lib/themes/index";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
