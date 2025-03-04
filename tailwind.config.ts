@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate"
 
-export default {
+const config: Config =  {
     darkMode: ["class"],
     content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -17,7 +18,7 @@ export default {
   				foreground: 'hsl(var(--card-foreground))'
   			},
   			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
+  				DEFAULT: 'hsl(var(--popover-background))',
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			primary: {
@@ -58,5 +59,7 @@ export default {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
-} satisfies Config;
+  plugins: [animate],
+} 
+
+export default config

@@ -14,6 +14,13 @@ export interface Theme {
         hover: string;
         glow?: string;
       };
+
+      popover: {
+        background: string;
+        foreground: string;
+        border: string;
+        shadow: string;
+      };
     };
     fonts: {
       sans: string;

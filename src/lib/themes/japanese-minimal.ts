@@ -15,6 +15,12 @@ import {Theme} from "@/lib/types/theme"
         border: "0 69% 42%",        // Borde en color accent
         hover: "0 69% 42% / 0.1",   // Hover sutíl con transparencia
         glow: "none"                // Sin glow para mantener el minimalismo
+      },
+      popover: {
+        background: "0 0% 98%",
+        foreground: "0 0% 20%",
+        border: "0 0% 90%",
+        shadow: "0 0% 0%"
       }
     },
     fonts: {

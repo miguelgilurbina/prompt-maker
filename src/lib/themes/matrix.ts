@@ -14,7 +14,16 @@ import {Theme} from "@/lib/types/theme"
         border: "120 100% 50%",
         hover: "120 100% 30%",
         glow: "none"
-      }    },
+      },
+
+      popover: {
+        background: "120 100% 3%",
+        foreground: "120 100% 85%",
+        border: "120 100% 20%",
+        shadow: "120 100% 50%"
+      }
+    
+    },
     fonts: {
       sans: "'Source Code Pro', monospace",
       mono: "'Fira Code', monospace"

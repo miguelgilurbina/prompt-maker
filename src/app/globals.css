@@ -30,6 +30,12 @@
     --spacing-unit: 1rem;
     --radius: 4px;
     --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+    /* Variables de Popover */
+    --popover-background: var(--background);
+    --popover-foreground: var(--text);
+    --popover-border: var(--primary);
+    --popover-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
   }
 
   /* Japanese Minimal Theme */
@@ -41,6 +47,10 @@
     --background: 0 0% 98%;
     --text: 0 0% 20%;
     --foreground: 0 0% 20%;
+    --popover-background: hsl(0 0% 98%);
+    --popover-foreground: hsl(0 0% 20%);
+    --popover-border: hsl(0 0% 90%);
+    --popover-shadow: 0 2px 4px rgba(0, 0, 0);
 
     /* Tipografía */
     --font-sans: 'TAZUGANE GOTHIC', sans-serif;
@@ -84,6 +94,11 @@
     --spacing-unit: 1rem;
     --radius: 0px;
     --shadow: 0 0 10px hsl(120 100% 50% / 0.2);
+
+    --popover-background: hsl(120 100% 3%);
+    --popover-foreground: hsl(120 100% 85%);
+    --popover-border: hsl(120 100% 20%);
+    --popover-shadow: 0 0 10px hsl(120 100% 50% / 0.2);
   }
 }
 
@@ -141,6 +156,14 @@
   .text-wa {
     color: hsl(var(--text));
     font-family: var(--font-sans);
+  }
+
+  .floating-element {
+    /* @apply backdrop-blur-sm; */
+    background-color: hsl(var(--popover-background));
+    color: hsl(var(--popover-foreground));
+    border: 1px solid hsl(var(--popover-border));
+    box-shadow: var(--popover-shadow);
   }
 }
 
