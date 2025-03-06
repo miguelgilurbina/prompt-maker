@@ -3,9 +3,7 @@ import { useTheme } from "@/components/themes/ThemeProvider";
 import { type PromptCardProps } from "@/lib/types/prompt";
 
 export function PromptCard({
-  prompt: {
-    prompt: { title, content, tags },
-  },
+  prompt: { title, content, tags },
 }: PromptCardProps) {
   const { theme } = useTheme();
 

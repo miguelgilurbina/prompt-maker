@@ -25,6 +25,14 @@ export interface PromptVariable {
   options?: string[];  // Para variables tipo 'select'
 }
 
+export interface Template {
+  id: string;
+  name: string;
+  content: string;
+  variables: PromptVariable[];
+  category: string[];
+}
+
 // Categorías de prompts
 export type PromptCategory = 
   | 'creative-writing'

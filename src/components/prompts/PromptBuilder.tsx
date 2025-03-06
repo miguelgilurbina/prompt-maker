@@ -23,6 +23,8 @@ import {
 
 import { Prompt, PromptCategory, PromptEditorState } from "@/lib/types/prompt";
 
+import { mergeWithEmptyPrompt } from "@/lib/utils/promptUtils";
+
 interface PromptBuilderProps {
   initialPrompt?: Partial<Prompt>;
   onSave: (prompt: Prompt) => void;
@@ -35,7 +37,7 @@ export function PromptBuilder({
   onCancel,
 }: PromptBuilderProps) {
   const [editorState, setEditorState] = useState<PromptEditorState>({
-    currentPrompt: (initialPrompt as Prompt) || null,
+    currentPrompt: mergeWithEmptyPrompt(initialPrompt),
     isDirty: false,
     variables: new Map(),
     history: [],
@@ -76,17 +78,12 @@ export function PromptBuilder({
       !editorState.currentPrompt?.title ||
       !editorState.currentPrompt?.content
     ) {
-      // Mostrar error
       return;
     }
 
     const promptToSave: Prompt = {
       ...editorState.currentPrompt,
-      id: editorState.currentPrompt.id || crypto.randomUUID(),
-      createdAt: editorState.currentPrompt.createdAt || new Date(),
       updatedAt: new Date(),
-      tags: editorState.currentPrompt.tags || [],
-      category: editorState.currentPrompt.category || "general",
       variables: Array.from(editorState.variables.entries()).map(
         ([id, value]) => ({
           id,
@@ -100,6 +97,16 @@ export function PromptBuilder({
     onSave(promptToSave);
     setEditorState((prev) => ({ ...prev, isDirty: false }));
   }, [editorState, onSave]);
+
+  const handleReset = useCallback(() => {
+    setEditorState({
+      currentPrompt: mergeWithEmptyPrompt(initialPrompt),
+      isDirty: false,
+      variables: new Map(),
+      history: [],
+      previewMode: false,
+    });
+  }, [initialPrompt]);
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -216,13 +223,7 @@ export function PromptBuilder({
         )}
         <Button
           variant="outline"
-          onClick={() =>
-            setEditorState((prev) => ({
-              ...prev,
-              currentPrompt: (initialPrompt as Prompt) || null,
-              isDirty: false,
-            }))
-          }
+          onClick={handleReset}
           disabled={!editorState.isDirty}
         >
           Reset

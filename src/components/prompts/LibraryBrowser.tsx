@@ -12,23 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface Instruction {
-  id: string;
-  content: string;
-  category: string;
-  tags?: string[];
-}
+import { Prompt, PromptCategory } from "@/lib/types/prompt";
 
 interface Category {
-  id: string;
+  id: PromptCategory;
   name: string;
 }
 
 interface LibraryBrowserProps {
   categories: Category[];
-  instructions: Instruction[];
-  onSelect: (instruction: Instruction) => void;
+  instructions: Prompt[];
+  onSelect: (instruction: Prompt) => void;
 }
 
 export function LibraryBrowser({
@@ -36,7 +30,9 @@ export function LibraryBrowser({
   instructions,
   onSelect,
 }: LibraryBrowserProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<
+    PromptCategory | "all"
+  >("all");
 
   const filteredInstructions =
     selectedCategory === "all"
@@ -49,7 +45,12 @@ export function LibraryBrowser({
         <CardTitle>Instructions Library</CardTitle>
         <div className="flex gap-4">
           <Input placeholder="Search instructions..." className="max-w-sm" />
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <Select
+            value={selectedCategory}
+            onValueChange={(value) =>
+              setSelectedCategory(value as PromptCategory | "all")
+            }
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
