@@ -25,9 +25,28 @@ import { Prompt, PromptCategory, PromptEditorState } from "@/lib/types/prompt";
 
 import { mergeWithEmptyPrompt } from "@/lib/utils/promptUtils";
 
+/**
+ * PromptBuilder Component
+ *
+ * A form component for creating and editing AI prompts with real-time preview.
+ * Supports markdown editing, variables, and conditional blocks.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <PromptBuilder
+ *   initialPrompt={somePrompt}
+ *   onSave={(prompt) => handleSave(prompt)}
+ * />
+ * ```
+ */
+
 interface PromptBuilderProps {
+  /** Initial prompt data for editing mode */
   initialPrompt?: Partial<Prompt>;
+  /** Callback fired when prompt is saved */
   onSave: (prompt: Prompt) => void;
+  /** Optional callback for cancellation */
   onCancel?: () => void;
 }
 
@@ -109,7 +128,7 @@ export function PromptBuilder({
   }, [initialPrompt]);
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className="w-full max-w-4xl mx-auto" data-testid="prompt-builder">
       <CardHeader>
         <CardTitle>Create Your Prompt</CardTitle>
       </CardHeader>
@@ -129,6 +148,7 @@ export function PromptBuilder({
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Prompt Title"
               className="font-medium"
+              aria-label="Prompt Input"
             />
             <Textarea
               value={editorState.currentPrompt?.description || ""}
