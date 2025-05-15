@@ -1,6 +1,10 @@
 // src/components/prompts/PromptCard.tsx
 import { useTheme } from "@/components/themes/ThemeProvider";
-import { type PromptCardProps } from "@/lib/types/prompt";
+import { type Prompt } from "@/../../shared/src/types/prompt.types";
+
+interface PromptCardProps {
+  prompt: Prompt;
+}
 
 export function PromptCard({
   prompt: { title, content, tags },
