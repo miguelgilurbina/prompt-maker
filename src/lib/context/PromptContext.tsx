@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import {
   Prompt,
-  PromptEditorState,
   PromptVariable,
   PromptCategory,
-} from "@/lib/types/prompt";
+} from "@shared/types/prompt.types";
+import { PromptEditorState } from "../types/ui-states.types";
 
 interface PromptContextType {
   // Estado del editor

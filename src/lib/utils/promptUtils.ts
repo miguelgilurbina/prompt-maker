@@ -1,4 +1,4 @@
-import { Prompt, PromptCategory } from "@/lib/types/prompt";
+import { Prompt, PromptCategory } from "@shared/types/prompt.types";
 
 export const createEmptyPrompt = (): Prompt => ({
   id: crypto.randomUUID(),
@@ -8,7 +8,9 @@ export const createEmptyPrompt = (): Prompt => ({
   category: "general" as PromptCategory,
   createdAt: new Date(),
   updatedAt: new Date(),
-  variables: []
+  variables: [],
+  votes: 0,
+  comments: []
 });
 
 export const mergeWithEmptyPrompt = (initial: Partial<Prompt>): Prompt => ({

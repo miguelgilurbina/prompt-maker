@@ -25,6 +25,8 @@ import { Prompt, PromptCategory } from "@shared/types/prompt.types";
 import { PromptEditorState } from "@/lib/types/ui-states.types";
 
 import { mergeWithEmptyPrompt } from "@/lib/utils/promptUtils";
+import { Checkbox } from "@radix-ui/react-checkbox";
+import { Label } from "@radix-ui/react-label";
 
 /**
  * PromptBuilder Component
@@ -63,6 +65,9 @@ export function PromptBuilder({
     history: [],
     previewMode: false,
   });
+
+  const [isPublic, setIsPublic] = useState(true);
+  const [authorName, setAuthorName] = useState("");
 
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
 
@@ -112,11 +117,16 @@ export function PromptBuilder({
           defaultValue: value,
         })
       ),
+      // Añadir estos campos
+      votes: editorState.currentPrompt.votes || 0,
+      comments: editorState.currentPrompt.comments || [],
+      isPublic: isPublic,
+      authorName: isPublic ? authorName || "Anonymous" : undefined,
     };
 
     onSave(promptToSave);
     setEditorState((prev) => ({ ...prev, isDirty: false }));
-  }, [editorState, onSave]);
+  }, [editorState, onSave, isPublic, authorName]);
 
   const handleReset = useCallback(() => {
     setEditorState({
@@ -194,6 +204,24 @@ export function PromptBuilder({
               placeholder="Tags (comma separated)"
               className="font-mono text-sm"
             />
+            <div className="space-y-2 pt-4 border-t mt-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isPublic"
+                  checked={isPublic}
+                  onCheckedChange={(checked) => setIsPublic(checked === true)}
+                />
+                <Label htmlFor="isPublic">Make this prompt public</Label>
+              </div>
+
+              {isPublic && (
+                <Input
+                  value={authorName}
+                  onChange={(e) => setAuthorName(e.target.value)}
+                  placeholder="Your name (optional, will appear as Anonymous if empty)"
+                />
+              )}
+            </div>
           </TabsContent>
           <TabsContent value="preview">
             <div className="prose dark:prose-invert max-w-none">

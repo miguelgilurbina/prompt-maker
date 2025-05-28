@@ -14,7 +14,14 @@ export const baseTheme: Theme = {
         text: "0 0% 20%",
         border: "0 0% 80%",
         hover: "0 0% 95%"
-      }
+      },
+
+      popover: {
+        background: "0 0% 98%",
+        foreground: "0 0% 20%",
+        border: "0 0% 80%",
+        shadow: "0 0% 80%"
+      },
     },
     fonts: {
       sans: "'TAZUGANE GOTHIC', sans-serif",
