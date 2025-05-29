@@ -15,15 +15,15 @@ export function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/templates" className="hover:text-primary">
-              Templates
+            <Link href="/explore" className="hover:text-primary">
+              Explore Prompts
             </Link>
-            <Link href="/library" className="hover:text-primary">
+            {/* <Link href="/library" className="hover:text-primary">
               Library
             </Link>
             <Link href="/docs" className="hover:text-primary">
               Docs
-            </Link>
+            </Link> */}
           </nav>
 
           <div className="flex items-center space-x-4">
