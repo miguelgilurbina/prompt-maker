@@ -1,8 +1,13 @@
 // frontend/src/lib/services/api.ts
 import { Prompt } from "@shared/types/prompt.types";
-// import {PromptComments} from "../../components/prompts/PromptComments";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+
+// Helper para logging
+const logRequest = (method: string, url: string, data?: unknown) => {
+  console.log(`🔗 ${method} Request to: ${url}`);
+  if (data) console.log('📦 Data:', data);
+};
 
 // Funciones para prompts públicos
 export async function fetchPublicPrompts(page = 1, limit = 10, search = '') {
@@ -12,17 +17,29 @@ export async function fetchPublicPrompts(page = 1, limit = 10, search = '') {
     ...(search ? { search } : {})
   });
   
-  const response = await fetch(`${API_URL}/public/prompts?${queryParams}`);
+  // CAMBIO IMPORTANTE: Añadir /api antes de /public
+  const url = `${API_URL}/api/public/prompts?${queryParams}`;
+  logRequest('GET', url);
+  
+  const response = await fetch(url);
   
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ Response error:', response.status, errorText);
     throw new Error('Failed to fetch prompts');
   }
   
-  return await response.json();
+  const data = await response.json();
+  console.log('✅ Prompts received:', data);
+  return data;
 }
 
 export async function fetchPromptById(id: string) {
-  const response = await fetch(`${API_URL}/public/prompts/${id}`);
+  // CAMBIO: Añadir /api
+  const url = `${API_URL}/api/public/prompts/${id}`;
+  logRequest('GET', url);
+  
+  const response = await fetch(url);
   
   if (!response.ok) {
     throw new Error('Failed to fetch prompt');
@@ -32,7 +49,11 @@ export async function fetchPromptById(id: string) {
 }
 
 export async function voteForPrompt(promptId: string) {
-  const response = await fetch(`${API_URL}/public/prompts/${promptId}/vote`, {
+  // CAMBIO: Añadir /api
+  const url = `${API_URL}/api/public/prompts/${promptId}/vote`;
+  logRequest('POST', url);
+  
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -47,7 +68,11 @@ export async function voteForPrompt(promptId: string) {
 }
 
 export async function addCommentToPrompt(promptId: string, text: string, authorName: string) {
-  const response = await fetch(`${API_URL}/public/prompts/${promptId}/comment`, {
+  // CAMBIO: Añadir /api
+  const url = `${API_URL}/api/public/prompts/${promptId}/comment`;
+  logRequest('POST', url, { text, authorName });
+  
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -63,7 +88,11 @@ export async function addCommentToPrompt(promptId: string, text: string, authorN
 }
 
 export async function createAnonymousPrompt(promptData: Partial<Prompt>) {
-  const response = await fetch(`${API_URL}/public/prompts`, {
+  // CAMBIO: Añadir /api
+  const url = `${API_URL}/api/public/prompts`;
+  logRequest('POST', url, promptData);
+  
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
