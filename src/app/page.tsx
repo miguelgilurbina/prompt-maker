@@ -5,7 +5,7 @@ import { useState } from "react";
 import { PromptBuilder } from "@/components/prompts/PromptBuilder";
 import { LibraryBrowser } from "@/components/prompts/LibraryBrowser";
 import { SearchBar } from "@/components/prompts/SearchBar";
-import { Prompt, PromptCategory } from "@shared/types/prompt.types";
+import { Prompt, PromptCategory } from "@/lib/types/prompt.types";
 
 // Definimos las interfaces
 interface FilterOptions {
