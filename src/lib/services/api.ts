@@ -1,5 +1,5 @@
 // frontend/src/lib/services/api.ts
-import { Prompt } from "@shared/types/prompt.types";
+import { Prompt } from "@/lib/types/prompt.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
