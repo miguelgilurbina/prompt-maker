@@ -3,6 +3,7 @@
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Theme } from "@/lib/types/theme";
 
 const themes = [
   { name: "Tech-Focused", id: "tech" },
@@ -11,7 +12,7 @@ const themes = [
 ] as const;
 
 export function ThemeSwitcher() {
-  const { currentTheme, setCurrentTheme } = useTheme();
+  const { currentTheme, setTheme } = useTheme();
 
   return (
     <div className="p-8 space-y-8">
@@ -19,8 +20,12 @@ export function ThemeSwitcher() {
         {themes.map((theme) => (
           <Button
             key={theme.id}
-            variant={currentTheme === theme.id ? "default" : "outline"}
-            onClick={() => setCurrentTheme(theme.id)}
+            variant={
+              currentTheme === (theme.id as unknown as typeof currentTheme)
+                ? "default"
+                : "outline"
+            }
+            onClick={() => setTheme(theme.id as unknown as Theme)}
           >
             {theme.name}
           </Button>

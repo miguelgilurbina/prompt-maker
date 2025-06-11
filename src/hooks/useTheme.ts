@@ -14,7 +14,9 @@ export function useTheme() {
     
     // Aplicar variables CSS
     Object.entries(currentTheme.colors).forEach(([key, value]) => {
-      root.style.setProperty(`--${key}`, value)
+      if (typeof value === 'string') {
+        root.style.setProperty(`--${key}`, value)
+      }
     })
 
     // Aplicar fuentes
