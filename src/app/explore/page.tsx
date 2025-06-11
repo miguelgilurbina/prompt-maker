@@ -11,7 +11,7 @@ import {
   addCommentToPrompt,
   fetchPromptById,
 } from "@/lib/services/api";
-import { Prompt } from "@shared/types/prompt.types";
+import { Prompt } from "@/lib/types/prompt.types";
 
 // Componente temporal para debugging
 const DebugPanel = ({ data }: { data: unknown }) => {
