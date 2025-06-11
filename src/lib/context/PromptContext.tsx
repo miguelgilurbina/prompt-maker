@@ -3,7 +3,7 @@ import {
   Prompt,
   PromptVariable,
   PromptCategory,
-} from "@shared/types/prompt.types";
+} from "@/lib/types/prompt.types";
 import { PromptEditorState } from "../types/ui-states.types";
 
 interface PromptContextType {
