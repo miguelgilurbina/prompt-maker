@@ -113,7 +113,7 @@ export const PromptProvider: React.FC<{ children: React.ReactNode }> = ({
       let result = content;
       editorState.variables.forEach((value, key) => {
         const variable = editorState.currentPrompt?.variables?.find(
-          (v) => v.id === key
+          (v: PromptVariable) => v.id === key
         );
         if (variable) {
           result = result.replace(`{{${variable.name}}}`, value);
