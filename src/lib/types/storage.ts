@@ -1,4 +1,4 @@
-import { Prompt } from "@shared/types/prompt.types";
+import { Prompt } from "@/lib/types/prompt.types";
 
 // lib/types/storage.ts
 

@@ -1,4 +1,4 @@
-import { Prompt, PromptCategory, PromptVariable } from "@shared/types/prompt.types";
+import { Prompt, PromptCategory, PromptVariable } from "@/lib/types/prompt.types";
 
 // lib/types/actions.ts
 

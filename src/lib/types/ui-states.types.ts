@@ -1,5 +1,5 @@
 // Biblioteca de prompts
-import { Prompt, PromptCategory } from "@/../../shared/src/types/prompt.types";
+import { Prompt, PromptCategory } from "@/lib/types/prompt.types";
 
 
 export interface PromptLibrary {
