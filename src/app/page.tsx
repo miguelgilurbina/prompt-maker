@@ -36,6 +36,8 @@ const mockPrompts: Prompt[] = [
         description: "Main subject of the image",
       },
     ],
+    votes: 0,
+    comments: [],
   },
   {
     id: "2",
@@ -59,6 +61,8 @@ const mockPrompts: Prompt[] = [
         description: "Specific aspects to focus on",
       },
     ],
+    votes: 0,
+    comments: [],
   },
 ];
 
