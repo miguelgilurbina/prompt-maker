@@ -243,7 +243,7 @@ export function PromptBuilder({
               {editorState.currentPrompt?.tags &&
                 editorState.currentPrompt.tags.length > 0 && (
                   <div className="flex gap-2 mt-4 flex-wrap">
-                    {editorState.currentPrompt.tags.map((tag) => (
+                    {editorState.currentPrompt.tags.map((tag: string) => (
                       <span
                         key={tag}
                         className="bg-primary/10 text-primary px-2 py-1 rounded-full text-sm"
