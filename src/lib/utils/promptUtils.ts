@@ -1,4 +1,4 @@
-import { Prompt, PromptCategory } from "@shared/types/prompt.types";
+import { Prompt, PromptCategory } from "@/lib/types/prompt.types";
 
 export const createEmptyPrompt = (): Prompt => ({
   id: crypto.randomUUID(),
