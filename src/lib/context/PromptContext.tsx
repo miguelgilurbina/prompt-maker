@@ -47,7 +47,10 @@ export const PromptProvider: React.FC<{ children: React.ReactNode }> = ({
       currentPrompt: prompt,
       isDirty: false,
       variables: new Map(
-        prompt?.variables?.map((v) => [v.id, v.defaultValue || ""]) || []
+        prompt?.variables?.map((v: PromptVariable) => [
+          v.id,
+          v.defaultValue || "",
+        ]) || []
       ),
     }));
   }, []);
