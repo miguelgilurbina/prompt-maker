@@ -1,7 +1,7 @@
 // src/components/prompts/PromptCard.tsx
 import { useState } from "react";
 import { useTheme } from "@/components/themes/ThemeProvider";
-import { type Prompt } from "@/../../shared/src/types/prompt.types";
+import { type Prompt } from "@/lib/types/prompt.types";
 import { VoteButton } from "./VoteButton";
 import { Button } from "@/components/ui/button";
 import { Copy, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";

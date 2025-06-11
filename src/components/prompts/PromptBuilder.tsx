@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Prompt, PromptCategory } from "@shared/types/prompt.types";
+import { Prompt, PromptCategory } from "@/lib/types/prompt.types";
 import { PromptEditorState } from "@/lib/types/ui-states.types";
 
 import { mergeWithEmptyPrompt } from "@/lib/utils/promptUtils";

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { PromptComment } from "@shared/types/prompt.types";
+import { PromptComment } from "@/lib/types/prompt.types";
 
 interface PromptCommentsProps {
   comments: PromptComment[];
