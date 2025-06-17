@@ -2,9 +2,8 @@
 import { useState } from "react";
 import { useTheme } from "@/components/themes/ThemeProvider";
 import { type Prompt } from "@/../../shared/src/types/prompt.types";
-import { VoteButton } from "./VoteButton";
 import { Button } from "@/components/ui/button";
-import { Copy, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Copy, MessageCircle, ThumbsUp } from "lucide-react";
 import { PromptComments } from "./PromptComments";
 
 interface PromptCardProps {
@@ -33,71 +32,70 @@ export function PromptCard({
   };
 
   return (
-    <div className="japanese-card">
-      <h3
-        className="text-lg font-medium mb-4"
-        style={{ fontFamily: theme.fonts.sans }}
-      >
-        {prompt.title}
-      </h3>
-      <pre
-        className="bg-gray-50 p-4 rounded"
-        style={{ fontFamily: theme.fonts.mono }}
-      >
-        {prompt.content}
-      </pre>
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 border border-gray-200 dark:border-gray-700 flex flex-col transition-shadow duration-300 hover:shadow-xl">
+      {/* Card Header */}
+      <div className="flex-grow">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2" style={{ fontFamily: theme.fonts.sans }}>
+          {prompt.title}
+        </h3>
+        {prompt.description && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 h-10 overflow-hidden text-ellipsis">
+            {prompt.description}
+          </p>
+        )}
 
-      {/* Información del autor y fecha */}
-      <div className="mt-3 text-sm text-gray-500">
-        <span>By: {prompt.authorName || "Anonymous"}</span>
-        <span className="mx-2">•</span>
-        <span>{new Date(prompt.createdAt).toLocaleDateString()}</span>
-      </div>
+        {/* Prompt Content Preview */}
+        <pre
+          className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md text-sm text-gray-800 dark:text-gray-200 overflow-x-auto max-h-40"
+          style={{ fontFamily: theme.fonts.mono }}
+        >
+          {prompt.content}
+        </pre>
 
-      <div className="mt-4 flex justify-between items-center">
-        <div className="flex gap-2">
+        {/* Tags */}
+        <div className="mt-4 flex flex-wrap gap-2">
           {prompt.tags?.map((tag) => (
-            <span key={tag} className="text-xs text-gray-500">
+            <span key={tag} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
               #{tag}
             </span>
           ))}
         </div>
+      </div>
 
-        <div className="flex gap-2">
-          {/* Botón de votos */}
-          <VoteButton
-            promptId={prompt.id}
-            initialVotes={prompt.votes || 0}
-            onVote={onVote}
-          />
-
-          {/* Botón de comentarios */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-1"
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>{prompt.comments?.length || 0}</span>
-            {showComments ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
-
-          {/* Botón de copiar */}
+      {/* Card Footer */}
+      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onVote(prompt.id)}
+              className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-500"
+            >
+              <ThumbsUp className="h-5 w-5" />
+              <span className="font-semibold">{prompt.votes || 0}</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-green-500"
+            >
+              <MessageCircle className="h-5 w-5" />
+              <span className="font-semibold">{prompt.comments?.length || 0}</span>
+            </Button>
+          </div>
           <Button variant="outline" size="sm" onClick={handleCopy}>
-            <Copy className="h-4 w-4 mr-1" />
+            <Copy className="h-4 w-4 mr-2" />
             {copied ? "Copied!" : "Copy"}
           </Button>
         </div>
       </div>
 
-      {/* Sección de comentarios expandible */}
+      {/* Collapsible Comments Section */}
       {showComments && (
-        <div className="mt-4">
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <PromptComments
             comments={prompt.comments || []}
             promptId={prompt.id}

@@ -49,7 +49,7 @@ export function PromptComments({
       {comments.length > 0 ? (
         <div className="space-y-4">
           {comments.map((comment, index) => (
-            <div key={index} className="bg-secondary/20 p-3 rounded-lg">
+            <div key={comment.id || index} className="bg-secondary/20 p-3 rounded-lg">
               <p className="text-sm">{comment.text}</p>
               <div className="flex justify-between mt-2">
                 <span className="text-xs text-muted-foreground">
@@ -68,7 +68,8 @@ export function PromptComments({
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      {promptId && (
+        <form onSubmit={handleSubmit} className="space-y-3">
         <Textarea
           placeholder="Add a comment..."
           value={commentText}
@@ -85,7 +86,8 @@ export function PromptComments({
             {isSubmitting ? "Sending..." : "Post Comment"}
           </Button>
         </div>
-      </form>
+        </form>
+      )}
     </div>
   );
 }

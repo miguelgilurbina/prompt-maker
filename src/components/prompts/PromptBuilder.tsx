@@ -139,11 +139,11 @@ export function PromptBuilder({
   }, [initialPrompt]);
 
   return (
-    <Card className="w-full max-w-4xl mx-auto" data-testid="prompt-builder">
+    <Card className="w-full max-w-4xl mx-auto flex flex-col h-full" data-testid="prompt-builder">
       <CardHeader>
         <CardTitle>Create Your Prompt</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow overflow-y-auto">
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "edit" | "preview")}
@@ -233,7 +233,7 @@ export function PromptBuilder({
                   {editorState.currentPrompt.description}
                 </p>
               )}
-              <div className="bg-muted p-4 rounded-lg">
+              <div className="bg-muted p-4 rounded-lg max-h-96 overflow-y-auto">
                 <pre className="whitespace-pre-wrap font-mono text-sm">
                   {processPromptContent(
                     editorState.currentPrompt?.content || ""
@@ -260,7 +260,7 @@ export function PromptBuilder({
           </TabsContent>
         </Tabs>
       </CardContent>
-      <CardFooter className="flex justify-end space-x-2">
+      <CardFooter className="flex-shrink-0 flex justify-end space-x-2">
         {onCancel && (
           <Button
             variant="outline"

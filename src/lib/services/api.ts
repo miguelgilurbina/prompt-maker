@@ -1,5 +1,5 @@
 // frontend/src/lib/services/api.ts
-import { Prompt } from "@shared/types/prompt.types";
+
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
@@ -82,29 +82,6 @@ export async function addCommentToPrompt(promptId: string, text: string, authorN
   
   if (!response.ok) {
     throw new Error('Failed to add comment');
-  }
-  
-  return await response.json();
-}
-
-export async function createAnonymousPrompt(promptData: Partial<Prompt>) {
-  // CAMBIO: Añadir /api
-  const url = `${API_URL}/api/public/prompts`;
-  logRequest('POST', url, promptData);
-  
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      ...promptData,
-      isPublic: true
-    })
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to create prompt');
   }
   
   return await response.json();
