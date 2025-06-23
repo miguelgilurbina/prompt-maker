@@ -44,48 +44,64 @@ export function PromptComments({
 
   return (
     <div className="mt-6 space-y-4">
-      <h3 className="text-lg font-medium">Comments ({comments.length})</h3>
+      <h3 className="text-lg font-medium text-foreground">
+        Comments ({comments.length})
+      </h3>
 
       {comments.length > 0 ? (
         <div className="space-y-4">
           {comments.map((comment, index) => (
-            <div key={comment.id || index} className="bg-secondary/20 p-3 rounded-lg">
-              <p className="text-sm">{comment.text}</p>
-              <div className="flex justify-between mt-2">
+            <div 
+              key={comment.id || index} 
+              className="bg-muted/30 p-4 rounded-lg border border-border transition-colors hover:bg-muted/50"
+            >
+              <p className="text-sm text-foreground/90">{comment.text}</p>
+              <div className="flex justify-between mt-3 pt-2 border-t border-border/50">
                 <span className="text-xs text-muted-foreground">
-                  By: {comment.authorName}
+                  By: <span className="text-foreground/80">{comment.authorName}</span>
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {new Date(comment.createdAt).toLocaleDateString()}
+                  {new Date(comment.createdAt).toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
                 </span>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground italic">
           No comments yet. Be the first to comment!
         </p>
       )}
 
       {promptId && (
-        <form onSubmit={handleSubmit} className="space-y-3">
-        <Textarea
-          placeholder="Add a comment..."
-          value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
-          className="min-h-[100px]"
-        />
-        <div className="flex gap-3">
-          <Input
-            placeholder="Your name (optional)"
-            value={authorName}
-            onChange={(e) => setAuthorName(e.target.value)}
+        <form onSubmit={handleSubmit} className="space-y-3 pt-2">
+          <Textarea
+            placeholder="Add a comment..."
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            className="min-h-[100px] bg-background"
           />
-          <Button type="submit" disabled={!commentText.trim() || isSubmitting}>
-            {isSubmitting ? "Sending..." : "Post Comment"}
-          </Button>
-        </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Input
+              placeholder="Your name (optional)"
+              value={authorName}
+              onChange={(e) => setAuthorName(e.target.value)}
+              className="bg-background flex-1"
+            />
+            <Button 
+              type="submit" 
+              disabled={!commentText.trim() || isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              {isSubmitting ? "Sending..." : "Post Comment"}
+            </Button>
+          </div>
         </form>
       )}
     </div>

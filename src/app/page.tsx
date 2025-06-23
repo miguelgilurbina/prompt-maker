@@ -5,6 +5,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { PromptBuilder } from "@/components/prompts/PromptBuilder";
 import { LibraryBrowser } from "@/components/prompts/LibraryBrowser";
 import { SearchBar } from "@/components/prompts/SearchBar";
+import { ExplorePanel } from "@/components/prompts/ExplorePanel";
 import { Prompt, PromptCategory } from "@shared/types/prompt.types";
 import { Book, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,10 @@ const mockPrompts: Prompt[] = [
         description: "Main subject of the image",
       },
     ],
+    votes: 0,
+    comments: [],
+    isPublic: true,
+    authorName: "System",
   },
   {
     id: "2",
@@ -64,6 +69,10 @@ const mockPrompts: Prompt[] = [
         description: "Specific aspects to focus on",
       },
     ],
+    votes: 0,
+    comments: [],
+    isPublic: true,
+    authorName: "System",
   },
 ];
 
@@ -93,38 +102,41 @@ export default function Home() {
   const handleSavePrompt = async (prompt: Prompt) => {
     setIsSaving(true);
     setSaveError(null);
-    
+
     try {
       const result = await savePrompt(prompt, prompt.isPublic);
-      
+
       if (result.success) {
         toast({
           title: "Success!",
           description: "Your prompt has been saved successfully.",
           action: (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => {
                 // If saved as public, navigate to explore page
                 if (prompt.isPublic) {
-                  router.push('/explore');
+                  router.push("/explore");
                 }
               }}
             >
-              {prompt.isPublic ? 'View in Explore' : 'OK'}
+              {prompt.isPublic ? "View in Explore" : "OK"}
             </Button>
           ),
         });
-        
+
         // Clear the form after successful save
         setSelectedPrompt(null);
       } else {
-        throw new Error(result.error || 'Failed to save prompt');
+        throw new Error(result.error || "Failed to save prompt");
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred while saving the prompt';
-      console.error('Error saving prompt:', error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while saving the prompt";
+      console.error("Error saving prompt:", error);
       setSaveError(errorMessage);
       toast({
         title: "Error",
@@ -147,8 +159,10 @@ export default function Home() {
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isResizing.current && sidebarRef.current) {
-      const newWidth = e.clientX - sidebarRef.current.getBoundingClientRect().left;
-      if (newWidth > 300 && newWidth < 1000) { // Min and max width constraints
+      const newWidth =
+        e.clientX - sidebarRef.current.getBoundingClientRect().left;
+      if (newWidth > 300 && newWidth < 1000) {
+        // Min and max width constraints
         setLibraryWidth(newWidth);
       }
     }
@@ -159,27 +173,52 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [handleMouseMove, handleMouseUp]);
 
   return (
-    <main className="container mx-auto p-4 flex flex-col h-screen">
-             <div className="flex justify-center items-center mb-4">
-        <Button
-          onClick={() => setIsLibraryOpen(!isLibraryOpen)}
-          variant="outline"
-          size="icon"
-          className="mr-2"
-        >
-          <Book className="h-5 w-5" />
-        </Button>
-        <SearchBar onSearch={handleSearch} />
+    <main className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-6">
+        {/* Header Section */}
+        <header className="w-full mb-8 relative">
+          <div className="flex flex-col items-center">
+            {/* Library Toggle - Positioned absolutely */}
+            <div className="absolute left-0 top-0">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsLibraryOpen(!isLibraryOpen)}
+                className="h-10 w-10"
+                title={isLibraryOpen ? "Hide Library" : "Show Library"}
+              >
+                <Book className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Centered Title */}
+            <div className="w-full flex justify-center mb-6">
+              <div className="text-center">
+                <h1 className="text-3xl font-bold">Prompt Maker</h1>
+              </div>
+            </div>
+
+            {/* Centered Search Bar */}
+            <div className="w-full max-w-2xl">
+              <SearchBar
+                onSearch={handleSearch}
+                className="w-full"
+                platforms={["Midjourney", "ChatGPT", "Claude", "DALL-E"]}
+                types={["Image", "Text", "Code", "Audio"]}
+              />
+            </div>
+          </div>
+        </header>
       </div>
 
       <div className="flex flex-grow overflow-hidden">
@@ -187,25 +226,23 @@ export default function Home() {
         {isLibraryOpen && (
           <div
             ref={sidebarRef}
-            className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden flex-shrink-0"
+            className="shadow-lg rounded-lg overflow-hidden flex-shrink-0"
             style={{ width: libraryWidth }}
           >
-            <div className="p-4 h-full overflow-y-auto">
-              <LibraryBrowser
-                categories={mockCategories}
-                instructions={mockPrompts}
-                onSelect={handleSelectPrompt}
-              />
-            </div>
+            <LibraryBrowser
+              categories={mockCategories}
+              instructions={mockPrompts}
+              onSelect={handleSelectPrompt}
+            />
           </div>
         )}
 
         {/* Resizer Handle */}
         {isLibraryOpen && (
-            <div
-                onMouseDown={handleMouseDown}
-                className="w-2 cursor-col-resize bg-gray-300 hover:bg-indigo-500 transition-colors duration-200 flex-shrink-0"
-            />
+          <div
+            onMouseDown={handleMouseDown}
+            className="w-2 cursor-col-resize bg-gray-300 hover:bg-indigo-500 transition-colors duration-200 flex-shrink-0"
+          />
         )}
 
         {/* Prompt Builder - Takes remaining space */}
@@ -214,17 +251,19 @@ export default function Home() {
             <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
               <div className="flex flex-col items-center gap-2 bg-background p-6 rounded-lg shadow-lg border">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Saving your prompt...</p>
+                <p className="text-sm text-muted-foreground">
+                  Saving your prompt...
+                </p>
               </div>
             </div>
           )}
-          
+
           <PromptBuilder
-            key={selectedPrompt?.id || 'new-prompt'}
+            key={selectedPrompt?.id || "new-prompt"}
             initialPrompt={selectedPrompt || undefined}
             onSave={handleSavePrompt}
           />
-          
+
           {saveError && (
             <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-md flex items-center gap-2">
               <AlertCircle className="h-4 w-4" />
@@ -232,6 +271,10 @@ export default function Home() {
             </div>
           )}
         </div>
+      </div>
+      {/* Explore Section */}
+      <div className="bg-card p-6 rounded-lg shadow">
+        <ExplorePanel />
       </div>
     </main>
   );

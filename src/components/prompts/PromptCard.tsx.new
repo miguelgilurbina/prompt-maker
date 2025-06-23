@@ -1,0 +1,123 @@
+// src/components/prompts/PromptCard.tsx
+import { useState } from "react";
+import { type Prompt as BasePrompt } from "@/../../shared/src/types/prompt.types";
+import { Button } from "@/components/ui/button";
+import { Eye, MessageCircle, ThumbsUp } from "lucide-react";
+import { cn } from "@/lib/utils/utils";
+
+// Extend the base Prompt type to include MongoDB _id
+interface MongoPrompt extends Omit<BasePrompt, 'id'> {
+  _id: string;
+  id?: string; // Make id optional since MongoDB uses _id
+}
+
+export interface PromptCardProps {
+  prompt: MongoPrompt | BasePrompt;
+  onVote?: (promptId: string) => Promise<void>;
+  onView?: (prompt: MongoPrompt | BasePrompt) => void;
+  className?: string;
+}
+
+// Helper function to get the prompt ID, checking both _id and id fields
+const getPromptId = (prompt: MongoPrompt | BasePrompt): string => {
+  return (prompt as MongoPrompt)._id || prompt.id || '';
+};
+
+export function PromptCard({
+  prompt,
+  onVote = async () => {},
+  onView,
+  className = "",
+}: PromptCardProps) {
+  const [isVoting, setIsVoting] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
+
+  const handleView = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onView?.(prompt);
+  };
+
+  const handleVote = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const promptId = getPromptId(prompt);
+    if (hasVoted || !promptId) {
+      return;
+    }
+    
+    setIsVoting(true);
+    
+    try {
+      await onVote(promptId);
+      setHasVoted(true);
+    } catch (error) {
+      console.error("Error voting for prompt:", error);
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
+  return (
+    <div className={cn("group relative bg-card rounded-lg border border-border overflow-hidden transition-all hover:shadow-md", className)}>
+      <div className="p-4">
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-medium text-foreground truncate pr-8">
+              {prompt.title || 'Untitled Prompt'}
+            </h3>
+            {prompt.tags?.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {prompt.tags.slice(0, 2).map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground"
+                  >
+                    {tag}
+                  </span>
+                ))}
+                {prompt.tags.length > 2 && (
+                  <span className="text-xs text-muted-foreground">
+                    +{prompt.tags.length - 2}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              onClick={handleView}
+              title="View prompt"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            
+            <div className="flex items-center text-xs text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                onClick={handleVote}
+                disabled={isVoting || hasVoted}
+                title="Like"
+              >
+                <ThumbsUp className={`h-4 w-4 ${hasVoted ? 'fill-foreground' : ''}`} />
+              </Button>
+              <span className="text-xs">{prompt.votes || 0}</span>
+            </div>
+            
+            <div className="flex items-center text-xs text-muted-foreground">
+              <MessageCircle className="h-4 w-4 mr-0.5" />
+              <span>{prompt.comments?.length || 0}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
