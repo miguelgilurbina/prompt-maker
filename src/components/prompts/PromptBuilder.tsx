@@ -148,9 +148,25 @@ export function PromptBuilder({
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "edit" | "preview")}
         >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="edit">Edit</TabsTrigger>
-            <TabsTrigger value="preview">Preview</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 h-10 bg-muted/50 p-1 rounded-md">
+            <TabsTrigger 
+              value="edit"
+              className="relative rounded-md transition-all data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:font-medium"
+            >
+              <span className="relative z-10">Edit</span>
+              {activeTab === 'edit' && (
+                <span className="absolute inset-x-1 -bottom-px h-0.5 bg-primary rounded-full" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="preview"
+              className="relative rounded-md transition-all data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:font-medium"
+            >
+              <span className="relative z-10">Preview</span>
+              {activeTab === 'preview' && (
+                <span className="absolute inset-x-1 -bottom-px h-0.5 bg-primary rounded-full" />
+              )}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="edit" className="space-y-4">
