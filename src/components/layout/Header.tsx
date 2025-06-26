@@ -14,22 +14,22 @@ export function Header() {
             Prompt Maker
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/explore" className="hover:text-primary">
+          {/* <nav className="hidden md:flex items-center space-x-6"> */}
+          {/* <Link href="/explore" className="hover:text-primary">
               Explore Prompts
-            </Link>
-            {/* <Link href="/library" className="hover:text-primary">
+            </Link> */}
+          {/* <Link href="/library" className="hover:text-primary">
               Library
             </Link>
             <Link href="/docs" className="hover:text-primary">
               Docs
             </Link> */}
-          </nav>
+          {/* </nav> */}
 
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="icon" asChild>
               <Link
-                href="https://github.com/yourusername/prompt-maker"
+                href="https://github.com/miguelgilurbina/prompt-maker"
                 target="_blank"
                 rel="noopener noreferrer"
               >

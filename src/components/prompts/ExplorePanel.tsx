@@ -6,6 +6,7 @@ import { SearchBar } from "@/components/prompts/SearchBar";
 import { PromptCard } from "@/components/prompts/PromptCard";
 import { PromptPreviewModal } from "@/components/prompts/PromptPreviewModal";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   fetchPublicPrompts,
   voteForPrompt,
@@ -95,9 +96,12 @@ export function ExplorePanel() {
   };
 
   return (
-    <section className="mt-12">
-      <h2 className="text-2xl font-bold mb-6">Explore Public Prompts</h2>
-      <SearchBar onSearch={handleSearch} className="mb-6" />
+    <Card className="w-full max-w-4xl mx-auto flex flex-col h-full" data-testid="explore-panel">
+      <CardHeader className="pb-4">
+        <CardTitle>Explore Prompts</CardTitle>
+      </CardHeader>
+      <CardContent className="flex-grow overflow-y-auto">
+        <SearchBar onSearch={handleSearch} className="mb-6" />
 
       {loading ? (
         <div className="flex justify-center items-center h-40">
@@ -153,6 +157,7 @@ export function ExplorePanel() {
           onAddComment={handleAddComment}
         />
       )}
-    </section>
+      </CardContent>
+    </Card>
   );
 }

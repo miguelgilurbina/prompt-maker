@@ -2,19 +2,19 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t mt-auto">
+    <footer className="mt-auto">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Columna 1 */}
-          <div>
+        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-8"> */}
+        {/* Columna 1 */}
+        {/* <div>
             <h3 className="font-bold mb-4">Prompt Maker</h3>
             <p className="text-sm text-muted-foreground">
               Create, manage, and organize your AI prompts efficiently.
             </p>
-          </div>
+          </div> */}
 
-          {/* Columna 2 */}
-          <div>
+        {/* Columna 2 */}
+        {/* <div>
             <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-sm">
               <li>
@@ -33,10 +33,10 @@ export function Footer() {
                 </Link>
               </li>
             </ul>
-          </div>
+          </div> */}
 
-          {/* Columna 3 */}
-          <div>
+        {/* Columna 3 */}
+        {/* <div>
             <h4 className="font-semibold mb-4">Resources</h4>
             <ul className="space-y-2 text-sm">
               <li>
@@ -55,10 +55,10 @@ export function Footer() {
                 </Link>
               </li>
             </ul>
-          </div>
+          </div> */}
 
-          {/* Columna 4 */}
-          <div>
+        {/* Columna 4 */}
+        {/* <div>
             <h4 className="font-semibold mb-4">Legal</h4>
             <ul className="space-y-2 text-sm">
               <li>
@@ -73,23 +73,23 @@ export function Footer() {
               </li>
             </ul>
           </div>
-        </div>
+        </div> */}
 
         <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            © 2024 Prompt Maker. All rights reserved.
+          <p className="text-sm text-muted-foreground order-2 md:order-1 mt-4 md:mt-0">
+            © {new Date().getFullYear()} Prompt Maker. All rights reserved.
           </p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
+          <div className="flex space-x-6 order-1 md:order-2">
             <Link
-              href="https://twitter.com/yourusername"
+              href="https://www.instagram.com/promptmaker22/"
               className="text-muted-foreground hover:text-primary"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Twitter
+              Instagram
             </Link>
             <Link
-              href="https://github.com/yourusername"
+              href="https://github.com/miguelgilurbina/prompt-maker"
               className="text-muted-foreground hover:text-primary"
               target="_blank"
               rel="noopener noreferrer"

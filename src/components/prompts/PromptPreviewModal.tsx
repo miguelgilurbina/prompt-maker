@@ -3,13 +3,18 @@
 
 import { Button } from "@/components/ui/button";
 import { X, Copy, ThumbsUp, MessageCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Prompt as BasePrompt } from "@shared/types/prompt.types";
 import { useState } from "react";
 import { cn } from "@/lib/utils/utils";
 
 // Extend the base Prompt type to include MongoDB _id
-interface MongoPrompt extends Omit<BasePrompt, 'id'> {
+interface MongoPrompt extends Omit<BasePrompt, "id"> {
   _id: string;
   id?: string; // Make id optional since MongoDB uses _id
 }
@@ -21,15 +26,19 @@ interface PromptPreviewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onVote?: (promptId: string) => Promise<void>;
-  onAddComment?: (promptId: string, text: string, authorName: string) => Promise<void>;
+  onAddComment?: (
+    promptId: string,
+    text: string,
+    authorName: string
+  ) => Promise<void>;
 }
 
-export function PromptPreviewModal({ 
-  prompt, 
-  open, 
-  onOpenChange, 
+export function PromptPreviewModal({
+  prompt,
+  open,
+  onOpenChange,
   onVote = async () => {},
-  onAddComment = async () => {}
+  onAddComment = async () => {},
 }: PromptPreviewModalProps) {
   const [isVoting, setIsVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
@@ -41,7 +50,7 @@ export function PromptPreviewModal({
 
   const handleVote = async () => {
     if (hasVoted || !prompt.id) return;
-    
+
     setIsVoting(true);
     try {
       await onVote(prompt.id);
@@ -56,10 +65,14 @@ export function PromptPreviewModal({
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.id || !commentText.trim()) return;
-    
+
     setIsSubmittingComment(true);
     try {
-      await onAddComment(prompt.id, commentText.trim(), commentAuthor || "Anonymous");
+      await onAddComment(
+        prompt.id,
+        commentText.trim(),
+        commentAuthor || "Anonymous"
+      );
       setCommentText("");
     } catch (error) {
       console.error("Error adding comment:", error);
@@ -78,21 +91,19 @@ export function PromptPreviewModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex justify-between items-center">
-            <DialogTitle className="text-2xl font-bold text-foreground">
-              {prompt.title || 'Untitled Prompt'}
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenChange(false)}
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </Button>
-          </div>
-          
+          <DialogTitle className="text-2xl font-bold text-foreground">
+            {prompt.title || "Untitled Prompt"}
+          </DialogTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(false)}
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Button>
+
           {prompt.tags?.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {prompt.tags.map((tag) => (
@@ -105,24 +116,28 @@ export function PromptPreviewModal({
               ))}
             </div>
           )}
-          
+
           <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
             <span>{new Date(prompt.createdAt).toLocaleDateString()}</span>
             {prompt.authorName && <span>• By {prompt.authorName}</span>}
           </div>
         </DialogHeader>
-        
+
         <div className="space-y-6 py-4">
           {prompt.description && (
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">Description</h3>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                Description
+              </h3>
               <p className="text-foreground">{prompt.description}</p>
             </div>
           )}
-          
+
           <div>
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-sm font-medium text-muted-foreground">Prompt</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Prompt
+              </h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -137,7 +152,7 @@ export function PromptPreviewModal({
               {prompt.content}
             </pre>
           </div>
-          
+
           <div className="flex items-center gap-4 pt-2 border-t">
             <div className="flex items-center gap-2">
               <Button
@@ -150,21 +165,26 @@ export function PromptPreviewModal({
                 onClick={handleVote}
                 disabled={isVoting || hasVoted}
               >
-                <ThumbsUp className={cn("h-4 w-4 mr-1.5", hasVoted && "fill-current")} />
+                <ThumbsUp
+                  className={cn("h-4 w-4 mr-1.5", hasVoted && "fill-current")}
+                />
                 <span>{prompt.votes || 0}</span>
               </Button>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <MessageCircle className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                {prompt.comments?.length || 0} {prompt.comments?.length === 1 ? 'comment' : 'comments'}
+                {prompt.comments?.length || 0}{" "}
+                {prompt.comments?.length === 1 ? "comment" : "comments"}
               </span>
             </div>
           </div>
-          
+
           <div className="border-t pt-4">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">Add a comment</h3>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">
+              Add a comment
+            </h3>
             <form onSubmit={handleAddComment} className="space-y-3">
               <div>
                 <input
@@ -183,16 +203,16 @@ export function PromptPreviewModal({
                   onChange={(e) => setCommentText(e.target.value)}
                   className="flex-1 px-3 py-2 text-sm border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <Button 
-                  type="submit" 
-                  size="sm" 
+                <Button
+                  type="submit"
+                  size="sm"
                   disabled={!commentText.trim() || isSubmittingComment}
                 >
-                  {isSubmittingComment ? 'Posting...' : 'Post'}
+                  {isSubmittingComment ? "Posting..." : "Post"}
                 </Button>
               </div>
             </form>
-            
+
             {prompt.comments?.length > 0 && (
               <div className="mt-6 space-y-4">
                 <h3 className="text-sm font-medium text-muted-foreground">
@@ -200,11 +220,16 @@ export function PromptPreviewModal({
                 </h3>
                 <div className="space-y-4">
                   {prompt.comments.map((comment, index) => (
-                    <div key={index} className="border-l-2 border-muted pl-4 py-1">
+                    <div
+                      key={index}
+                      className="border-l-2 border-muted pl-4 py-1"
+                    >
                       <div className="text-sm font-medium text-foreground">
-                        {comment.authorName || 'Anonymous'}
+                        {comment.authorName || "Anonymous"}
                       </div>
-                      <p className="text-sm text-foreground/90">{comment.text}</p>
+                      <p className="text-sm text-foreground/90">
+                        {comment.text}
+                      </p>
                       <div className="text-xs text-muted-foreground mt-1">
                         {new Date(comment.createdAt).toLocaleString()}
                       </div>
