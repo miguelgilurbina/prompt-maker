@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { ThemeToggle } from "@/components/themes/ThemeThoggle";
 import { Button } from "@/components/ui/button";
 import { Github, Menu, X } from "lucide-react";
@@ -41,6 +41,15 @@ export function Header() {
   }, []);
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
+  const handleSignOut = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      await signOut({ callbackUrl: '/' });
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <header 
@@ -104,14 +113,18 @@ export function Header() {
             <div className="h-9 w-20 animate-pulse rounded-md bg-muted" />
           ) : session ? (
             <div className="hidden md:flex items-center space-x-2">
-              <form action="/api/auth/signout" method="POST" className="flex items-center">
+              <div className="flex items-center">
                 <span className="text-sm text-muted-foreground mr-2">
                   {session.user?.name || session.user?.email}
                 </span>
-                <Button type="submit" variant="ghost" size="sm">
+                <Button 
+                  onClick={handleSignOut}
+                  variant="ghost" 
+                  size="sm"
+                >
                   Sign out
                 </Button>
-              </form>
+              </div>
             </div>
           ) : (
             <div className="hidden md:flex items-center space-x-2">
@@ -172,15 +185,13 @@ export function Header() {
                 <div className="px-3 py-2 text-sm text-muted-foreground">
                   {session.user?.name || session.user?.email}
                 </div>
-                <form action="/api/auth/signout" method="POST" className="w-full">
-                  <Button 
-                    type="submit" 
-                    variant="ghost" 
-                    className="w-full justify-start px-3"
-                  >
-                    Sign out
-                  </Button>
-                </form>
+                <Button 
+                  onClick={handleSignOut}
+                  variant="ghost" 
+                  className="w-full justify-start px-3"
+                >
+                  Sign out
+                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">

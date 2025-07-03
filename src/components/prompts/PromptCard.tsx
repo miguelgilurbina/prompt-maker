@@ -3,28 +3,20 @@ import { useState } from "react";
 import { MessageCircle, ThumbsUp, User } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { formatDistanceToNow } from "date-fns";
+import type { UIPrompt } from "@/lib/types/database.types";
 
-export interface Prompt {
-  id: string;
-  title: string;
-  description: string;
-  content: string;
-  isPublic: boolean;
-  author: {
-    name: string | null;
-    email: string | null;
-  };
-  createdAt: string | Date;
-  views?: number;
-  likes?: number;
-  tags?: string[];
-}
-
-export interface PromptCardProps {
-  prompt: Prompt;
+interface PromptCardProps {
+  /** The prompt data to display */
+  prompt: UIPrompt;
+  /** Callback when the card is clicked to view the prompt */
+  onView: (prompt: UIPrompt) => void;
+  /** Callback when the vote button is clicked */
+  onVote: (promptId: string) => Promise<void>;
+  /** Whether the current user is the owner of this prompt */
   isOwner?: boolean;
-  onVote?: (promptId: string) => Promise<void>;
-  onView?: (prompt: Prompt) => void;
+  /** Whether the current user has already voted for this prompt */
+  hasVoted?: boolean;
+  /** Optional class name for the root element */
   className?: string;
 }
 
@@ -33,11 +25,9 @@ export function PromptCard({
   isOwner = false,
   onVote = async () => {},
   onView,
-  className = "",
 }: PromptCardProps) {
   const [isVoting, setIsVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
-  const [localLikes, setLocalLikes] = useState(prompt.likes || 0);
 
   const handleView = (e: React.MouseEvent) => {
     // Only trigger view if the click is on the card itself, not on interactive elements
@@ -61,27 +51,32 @@ export function PromptCard({
     try {
       await onVote(prompt.id);
       setHasVoted(true);
-      setLocalLikes(prev => prev + 1);
     } catch (error) {
       console.error("Error voting for prompt:", error);
     } finally {
       setIsVoting(false);
     }
   };
-  
+
+  const voteCount = prompt.votes?.length || 0;
+  const commentCount = prompt.comments?.length || 0;
+
   const formattedDate = formatDistanceToNow(
-    typeof prompt.createdAt === 'string' 
-      ? new Date(prompt.createdAt) 
+    typeof prompt.createdAt === "string"
+      ? new Date(prompt.createdAt)
       : prompt.createdAt,
     { addSuffix: true }
   );
+
+  const getAuthorName = (): string => {
+    return prompt.authorName || 'Anonymous';
+  };
 
   return (
     <div
       className={cn(
         "group relative bg-card rounded-lg border border-border overflow-hidden transition-all hover:shadow-md hover:border-primary/20 cursor-pointer",
-        "flex flex-col h-full",
-        className
+        "flex flex-col h-full"
       )}
       onClick={handleView}
       role="button"
@@ -110,7 +105,7 @@ export function PromptCard({
         <div className="flex items-center text-xs text-muted-foreground mb-2">
           <User className="h-3.5 w-3.5 mr-1" />
           <span className="truncate">
-            {prompt.author?.name || 'Anonymous'}
+            {getAuthorName()}
           </span>
           <span className="mx-1">•</span>
           <span className="whitespace-nowrap">{formattedDate}</span>
@@ -137,18 +132,16 @@ export function PromptCard({
                 className={`h-3.5 w-3.5 ${hasVoted ? "fill-foreground" : ""}`}
               />
             </button>
-            <span className="min-w-[20px] text-center">
-              {localLikes}
-            </span>
+            <span className="min-w-[20px] text-center">{voteCount}</span>
 
             <div className="w-px h-4 bg-border/50 mx-1"></div>
 
             <div className="flex items-center">
               <MessageCircle className="h-3.5 w-3.5 mr-1" />
-              <span>0</span>
+              <span>{commentCount}</span>
             </div>
           </div>
-          
+
           <div className="text-xs text-muted-foreground">
             {prompt.views || 0} views
           </div>

@@ -86,7 +86,7 @@ export default function Home() {
           )}
 
           <PromptBuilder
-            key={selectedPrompt?.id || "new-prompt"}
+            key={selectedPrompt?._id || "new-prompt"}
             initialPrompt={selectedPrompt || undefined}
             onSave={handleSavePrompt}
           />

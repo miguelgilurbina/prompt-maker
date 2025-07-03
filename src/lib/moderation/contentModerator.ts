@@ -1,19 +1,12 @@
-interface PromptData {
-  title: string;
-  description?: string;
-  content: string;
-  tags?: string[];
-}
-
-import { Prompt } from '@/lib/types/prompt.types';
+import type { Prompt } from '@/lib/types/database.types';
 
 interface PromptData {
   title: string;
-  description?: string;
+  description?: string | null;
   content: string;
   tags?: string[];
   // Allow any string key with string, number, boolean, or array values
-  [key: string]: string | number | boolean | string[] | undefined;
+  [key: string]: string | number | boolean | string[] | null | undefined;
 }
 
 interface ModerationResult {

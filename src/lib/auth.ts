@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client"
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import type { DefaultSession, Session } from "next-auth"
-import type { JWT as NextAuthJWT } from "next-auth/jwt"
-import type { NextAuthConfig } from "next-auth"
+import type { DefaultSession, Session, User } from "next-auth"
+import type { JWT } from "next-auth/jwt"
+import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 
@@ -10,8 +10,6 @@ type AuthCredentials = {
   email: string
   password: string
 }
-
-const prisma = new PrismaClient()
 
 // Extend the built-in session and user types
 declare module "next-auth" {
@@ -24,18 +22,10 @@ declare module "next-auth" {
     }
   }
 
-  interface User {
-    id: string
-    email?: string | null
-    name?: string | null
-    image?: string | null
-    hashedPassword?: string | null
-  }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
-    id?: string
     sub?: string
     email?: string | null
     name?: string | null
@@ -43,12 +33,14 @@ declare module "next-auth/jwt" {
   }
 }
 
-export const authOptions: NextAuthConfig = {
+const prisma = new PrismaClient()
+
+export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
   // Custom logger implementation
   logger: {
-    error: (error: Error) => {
-      console.error('NextAuth Error:', error);
+    error: (code: string, metadata: Error | { [key: string]: unknown; error: Error; }) => {
+      console.error('NextAuth Error:', metadata);
     },
     warn: (message: string) => {
       console.warn('NextAuth Warning:', message);
@@ -59,9 +51,7 @@ export const authOptions: NextAuthConfig = {
       }
     }
   },
-  // Using type assertion as a workaround for PrismaAdapter type issues
-  // This is a known issue with NextAuth v5 and Prisma
-  // @ts-expect-error - PrismaAdapter types are not fully compatible with NextAuth v5 yet
+
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
@@ -70,39 +60,35 @@ export const authOptions: NextAuthConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
-        console.log('Authorize called with credentials:', { 
-          hasEmail: !!credentials?.email,
-          hasPassword: !!credentials?.password 
-        });
-        
+      async authorize(credentials): Promise<User | null> {
         if (!credentials?.email || !credentials?.password) {
-          console.log('Authorize failed: Missing credentials');
-          return null
+          return null;
         }
         
-        const { email, password } = credentials as AuthCredentials
-        console.log('Attempting to authorize user:', email);
+        const { email, password } = credentials as AuthCredentials;
         
         try {
-          // Find user by email using raw query to bypass Prisma type issues
-          console.log('Querying database for user:', email);
-          const users = await prisma.$queryRaw<Array<{ id: string; email: string; hashedPassword: string; name: string | null; image: string | null }>>`
-            SELECT id, email, "hashedPassword", name, image FROM "User" WHERE email = ${email} LIMIT 1
-          `
-          
-          console.log('Database query result:', { userCount: users.length });
-          const user = users[0]
+          // Find user by email
+          const user = await prisma.user.findUnique({
+            where: { email },
+            select: { 
+              id: true, 
+              email: true, 
+              name: true, 
+              image: true, 
+              hashedPassword: true 
+            }
+          });
 
-          if (!user || !user.hashedPassword) {
-            return null
+          if (!user?.hashedPassword) {
+            return null;
           }
 
           // Compare passwords
-          const isValid = await bcrypt.compare(password, user.hashedPassword)
+          const isValid = await bcrypt.compare(password, user.hashedPassword);
 
           if (!isValid) {
-            return null
+            return null;
           }
 
           // Return user object without the password
@@ -110,8 +96,8 @@ export const authOptions: NextAuthConfig = {
             id: user.id,
             email: user.email,
             name: user.name || user.email?.split('@')[0] || 'User',
-            image: null
-          }
+            image: user.image
+          } as User;
         } catch (error) {
           console.error("Authentication error:", error)
           return null
@@ -120,12 +106,8 @@ export const authOptions: NextAuthConfig = {
     })
   ],
   callbacks: {
-    async session({ session, token }: { session: Session; token: NextAuthJWT }): Promise<Session> {
+    async session({ session, token }: { session: Session; token: JWT }): Promise<Session> {
       try {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Session callback - token:', JSON.stringify(token, null, 2));
-        }
-        
         if (token?.sub) {
           // Add user ID to session from token
           session.user.id = token.sub;
@@ -150,13 +132,8 @@ export const authOptions: NextAuthConfig = {
               }
             } catch (dbError) {
               console.error('Database error in session callback:', dbError);
-              // Don't fail the session if we can't fetch from DB
             }
           }
-        }
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Session callback - final session:', JSON.stringify(session, null, 2));
         }
         
         return session;
@@ -174,13 +151,7 @@ export const authOptions: NextAuthConfig = {
         };
       }
     },
-    async jwt({ token, user, trigger, session }) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('JWT callback - trigger:', trigger);
-        console.log('JWT callback - input token:', JSON.stringify(token, null, 2));
-        if (user) console.log('JWT callback - user:', JSON.stringify(user, null, 2));
-      }
-      
+    async jwt({ token, user, trigger, session }): Promise<JWT> {
       try {
         // Initial sign in
         if (user) {
@@ -192,26 +163,18 @@ export const authOptions: NextAuthConfig = {
         
         // Update token with data from session if this is a session update
         if (trigger === 'update' && session?.user) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('JWT update - session.user:', JSON.stringify(session.user, null, 2));
-          }
-          token = { 
+          return { 
             ...token, 
             email: session.user.email || token.email,
             name: session.user.name || token.name,
             picture: session.user.image || token.picture
-          };
+          } as JWT;
         }
         
-        if (process.env.NODE_ENV === 'development') {
-          console.log('JWT callback - final token:', JSON.stringify(token, null, 2));
-        }
-        
-        return token;
+        return token as JWT;
       } catch (error) {
         console.error('JWT callback error:', error);
-        // Return the original token on error
-        return token;
+        return token as JWT;
       }
     }
   },

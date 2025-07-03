@@ -1,106 +1,91 @@
 import { NextResponse } from 'next/server';
-import { rateLimit } from '@/lib/middleware/rateLimit';
-import { validatePrompt } from '@/lib/validators/prompt.validator';
-import { ContentModerator } from '@/lib/moderation/contentModerator';
-import { Prompt } from '@/lib/types/prompt.types';
+import { NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
+import type { Session } from 'next-auth';
+import { Prisma } from '@prisma/client';
 
-
-
-// Apply rate limiting (10 requests per minute)
-const limiter = rateLimit({
-  max: 10,
-  window: 60,
-  errorMessage: 'Too many requests, please try again later.'
-});
-
-export async function POST(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    // Apply rate limiting
-    const rateLimitResponse = await limiter(request);
-    if (rateLimitResponse.status !== 200) {
-      return rateLimitResponse;
-    }
-
-    const data = await request.json();
-    
-    // Validate input
-    const validation = validatePrompt(data);
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.issues },
-        { status: 400 }
-      );
-    }
-
-    // Moderate content
-    const moderationResult = await ContentModerator.moderatePrompt(data);
-    if (!moderationResult.isApproved) {
-      return NextResponse.json(
-        { 
-          error: 'Content moderation failed',
-          reasons: moderationResult.reasons,
-          score: moderationResult.score
-        },
-        { status: 422 }
-      );
-    }
-
-    // If we get here, the prompt is valid and approved
-    // TODO: Save the prompt to your database
-    const savedPrompt = {
-      ...data,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    // Obtener sesión correctamente tipada
+    const session = await getServerSession(authOptions) as Session & {
+      user: {
+        id: string;
+        email?: string | null;
+        name?: string | null;
+        image?: string | null;
+      };
     };
-
-    return NextResponse.json(savedPrompt, { status: 201 });
-  } catch (error) {
-    console.error('Error creating prompt:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-interface GetPromptsParams {
-  search?: string;
-  page?: number;
-  limit?: number;
-  sortBy?: 'newest' | 'popular';
-}
-
-export async function GET(request: Request) {
-  try {
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
     const { searchParams } = new URL(request.url);
-    const params: GetPromptsParams = {
-      search: searchParams.get('search') || undefined,
-      page: searchParams.get('page') ? Number(searchParams.get('page')) : 1,
-      limit: searchParams.get('limit') ? Number(searchParams.get('limit')) : 10,
-      sortBy: (searchParams.get('sortBy') as 'newest' | 'popular') || 'newest'
-    };
-
-    // TODO: Replace with actual database query
-    // This is a mock implementation
-    const mockPrompts = [];
-    const total = 0;
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
+    const category = searchParams.get('category') || undefined;
     
+    const skip = (page - 1) * limit;
+    
+    // Construir where clause con tipos correctos
+    const where: Prisma.PromptWhereInput = {
+      authorId: session.user.id,
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' as const } },
+          { description: { contains: search, mode: 'insensitive' as const } },
+          { content: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }),
+      ...(category && { category }),
+    };
+    
+    // Ejecutar queries
+    const [prompts, total] = await prisma.$transaction([
+      prisma.prompt.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+          _count: {
+            select: {
+              votes: true,
+              comments: true,
+            },
+          },
+        },
+      }),
+      prisma.prompt.count({ where }),
+    ]);
+    
+    // Devolver el mismo formato que /api/prompts
     return NextResponse.json({
-      data: mockPrompts,
-      pagination: {
-        page: params.page,
-        limit: params.limit,
-        total,
-        totalPages: Math.ceil(total / params.limit),
-        hasNextPage: params.page * params.limit < total,
-        hasPrevPage: params.page > 1
-      }
+      data: prompts,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     });
+    
   } catch (error) {
-    console.error('Error fetching prompts:', error);
+    console.error('Error fetching user prompts:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch prompts' },
+      { error: 'Failed to fetch user prompts' },
       { status: 500 }
     );
   }

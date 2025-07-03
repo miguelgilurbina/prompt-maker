@@ -44,6 +44,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
   prompts       Prompt[]
+  comments      Comment[]
+  votes         Vote[]
 }
 
 model VerificationToken {
@@ -54,16 +56,56 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  promptId  String
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  
+  @@index([authorId])
+  @@index([promptId])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptId  String
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, promptId])
+  @@index([userId])
+  @@index([promptId])
+}
+
 model Prompt {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   description String?
-  content     String
-  category    String
+  content     String    @db.Text
+  category    String    @default("general")
   tags        String[]
-  isPublic    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isPublic    Boolean   @default(true)
+  authorName  String?   // Para prompts anónimos
+  variables   Json?     // Guardaremos las variables como JSON
+  views       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relaciones
   authorId    String?
-  author      User?    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author      User?     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments    Comment[]
+  votes       Vote[]
+  
+  @@index([authorId])
+  @@index([isPublic])
+  @@index([createdAt])
+  @@index([category])
 }
