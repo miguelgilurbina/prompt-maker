@@ -90,7 +90,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
     // Build the where clause for the query
     const where: Prisma.PromptWhereInput = {
       author: { email: session.user.email },
-      isPublic: true, // Only return public prompts for now
+      // Return all user prompts (both public and private) in "My Prompts"
       ...(search && {
         OR: [
           { title: { contains: search, mode: 'insensitive' } },

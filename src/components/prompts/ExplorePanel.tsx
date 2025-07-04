@@ -20,9 +20,88 @@ import { PromptCard } from "./PromptCard";
 import { PromptPreviewModal } from "./PromptPreviewModal";
 
 // Types
-import type { Prompt, UIPrompt } from "@/lib/types/database.types";
-import type { PaginatedResponse } from "@/lib/types/api.types";
-import type { Vote as PrismaVote } from "@prisma/client";
+import type {
+  UIPrompt,
+  PromptVariable,
+  PromptCategory,
+} from "@/lib/types/database.types";
+import type {
+  User,
+  Vote as PrismaVote,
+  Comment as PrismaComment,
+} from "@prisma/client";
+
+// Define valid prompt categories for the UI
+const VALID_CATEGORIES = [
+  "general",
+  "creative",
+  "technical",
+  "business",
+  "education",
+  "other",
+] as const;
+type ValidCategory = (typeof VALID_CATEGORIES)[number];
+
+// Extended types to match the component's needs
+type UIComment = Omit<PrismaComment, "author" | "prompt"> & {
+  authorName: string;
+  authorImage: string | null;
+  author: User | null;
+  prompt: { id: string } | null;
+};
+
+type UIVote = Omit<PrismaVote, "user" | "prompt"> & {
+  user: User | null;
+  prompt: { id: string } | null;
+  updatedAt: Date;
+};
+
+// Type guard to check if an object has a property
+const hasProperty = <T extends object, K extends PropertyKey>(
+  obj: T,
+  prop: K
+): obj is T & Record<K, unknown> => {
+  return prop in obj;
+};
+
+// Local type for API response prompt
+interface ApiPrompt {
+  id: string;
+  title: string;
+  description: string | null;
+  content: string;
+  category: string; // This will be cast to PromptCategory
+  tags: string[];
+  isPublic: boolean;
+  authorId: string;
+  author?: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    image: string | null;
+  } | null;
+  votes?: Array<{ userId: string }>; // Simplified for UI purposes
+  comments?: Array<{
+    id: string;
+    content: string;
+    authorId: string;
+    authorName?: string;
+    authorImage?: string | null;
+    createdAt: string | Date;
+  }>;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  variables?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    defaultValue?: string;
+    required?: boolean;
+  }>;
+  voteCount?: number;
+  commentCount?: number;
+  views?: number;
+}
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -55,7 +134,7 @@ export function ExplorePanel() {
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
   const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Ref to track if component is mounted
   const isMountedRef = useRef(true);
 
@@ -71,33 +150,248 @@ export function ExplorePanel() {
     []
   );
 
-  // Process prompt data from API response to match our UIPrompt type
-  const processPromptData = useCallback((apiPrompt: Prompt): UIPrompt => {
-    // Create UIPrompt by omitting author and adding UI metadata
-    const { author, ...promptWithoutAuthor } = apiPrompt;
-    
-    const uiPrompt: UIPrompt = {
-      ...promptWithoutAuthor,
-      isOwner: session?.user?.id === apiPrompt.authorId,
-      hasVoted: apiPrompt.votes?.some(vote => vote.userId === session?.user?.id) || false,
-      voteCount: apiPrompt.votes?.length || 0,
-      commentCount: apiPrompt.comments?.length || 0,
-      authorInfo: author ? {
-        id: author.id,
-        name: author.name,
-        email: author.email,
-        image: author.image
-      } : null
-    };
+  // Ensure a valid category value
+  const getValidCategory = (category: string): ValidCategory => {
+    return VALID_CATEGORIES.includes(category as ValidCategory)
+      ? (category as ValidCategory)
+      : "general";
+  };
 
-    return uiPrompt;
-  }, [session?.user?.id]);
+  // Process prompt data from API response to match our UIPrompt type
+  const processPromptData = useCallback(
+    (apiPrompt: ApiPrompt): UIPrompt => {
+      try {
+        console.log("Processing prompt data:", apiPrompt);
+
+        // Handle different API response structures
+        const author = apiPrompt.author || null;
+        const votes = apiPrompt.votes || [];
+        const comments = apiPrompt.comments || [];
+        const voteCount = apiPrompt.voteCount || votes.length || 0;
+        const commentCount = apiPrompt.commentCount || comments.length || 0;
+        const views = apiPrompt.views || 0;
+
+        // Get a valid category
+        const category = getValidCategory(apiPrompt.category) as PromptCategory;
+
+        // Helper function to safely get author info from comment
+        const getCommentAuthorInfo = (comment: unknown) => {
+          if (typeof comment !== "object" || comment === null) {
+            return {
+              name: "Anonymous",
+              image: null,
+              id: "",
+              author: null,
+            };
+          }
+
+          return {
+            name:
+              hasProperty(comment, "author") &&
+              comment.author &&
+              typeof comment.author === "object" &&
+              hasProperty(comment.author, "name")
+                ? String(comment.author.name) || "Anonymous"
+                : hasProperty(comment, "authorName")
+                ? String(comment.authorName) || "Anonymous"
+                : "Anonymous",
+            image:
+              hasProperty(comment, "author") &&
+              comment.author &&
+              typeof comment.author === "object" &&
+              hasProperty(comment.author, "image")
+                ? (comment.author.image as string | null)
+                : hasProperty(comment, "authorImage")
+                ? (comment.authorImage as string | null)
+                : null,
+            id: hasProperty(comment, "authorId")
+              ? String(comment.authorId)
+              : hasProperty(comment, "author") &&
+                comment.author &&
+                typeof comment.author === "object" &&
+                hasProperty(comment.author, "id")
+              ? String(comment.author.id)
+              : "",
+            author: hasProperty(comment, "author")
+              ? (comment.author as User | null)
+              : null,
+          };
+        };
+
+        // Helper function to safely get vote info
+        const getVoteInfo = (vote: unknown) => {
+          if (typeof vote !== "object" || vote === null) {
+            return {
+              id: `temp-${Math.random().toString(36).substr(2, 9)}`,
+              userId: "",
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              user: null,
+            };
+          }
+
+          const createdAt = hasProperty(vote, "createdAt")
+            ? new Date(String(vote.createdAt))
+            : new Date();
+
+          return {
+            id: hasProperty(vote, "id")
+              ? String(vote.id)
+              : `temp-${Math.random().toString(36).substr(2, 9)}`,
+            userId: hasProperty(vote, "userId") ? String(vote.userId) : "",
+            createdAt,
+            updatedAt: hasProperty(vote, "updatedAt")
+              ? new Date(String(vote.updatedAt))
+              : createdAt,
+            user: hasProperty(vote, "user") ? (vote.user as User | null) : null,
+          };
+        };
+
+        // Create UIPrompt with proper type safety
+        const uiPrompt: UIPrompt = {
+          id: apiPrompt.id,
+          title: apiPrompt.title,
+          description: apiPrompt.description || null,
+          content: apiPrompt.content,
+          category,
+          tags: Array.isArray(apiPrompt.tags) ? apiPrompt.tags : [],
+          isPublic: !!apiPrompt.isPublic,
+          authorId: apiPrompt.authorId,
+          authorName: author?.name || "Anonymous",
+          createdAt: new Date(apiPrompt.createdAt || Date.now()),
+          updatedAt: new Date(apiPrompt.updatedAt || Date.now()),
+          // Map variables to ensure they match the expected type
+          variables: (Array.isArray(apiPrompt.variables)
+            ? apiPrompt.variables
+            : []
+          ).map(
+            (v) =>
+              ({
+                id: hasProperty(v, "id")
+                  ? String(v.id)
+                  : `var-${Math.random().toString(36).substr(2, 9)}`,
+                name: hasProperty(v, "name") ? String(v.name) : "variable",
+                type: (hasProperty(v, "type") &&
+                ["number", "text", "select", "multiline"].includes(
+                  String(v.type)
+                )
+                  ? v.type
+                  : "text") as "number" | "text" | "select" | "multiline",
+                required: hasProperty(v, "required")
+                  ? Boolean(v.required)
+                  : false,
+                defaultValue: hasProperty(v, "defaultValue")
+                  ? String(v.defaultValue || "")
+                  : "",
+              } as PromptVariable)
+          ),
+          isOwner: session?.user?.id === apiPrompt.authorId,
+          hasVoted:
+            votes.some((vote) => {
+              const voteData = vote as { userId?: unknown };
+              return (
+                hasProperty(voteData, "userId") &&
+                String(voteData.userId) === session?.user?.id
+              );
+            }) || false,
+          voteCount,
+          commentCount,
+          views,
+          // Map comments to match UIComment type
+          comments: (Array.isArray(comments) ? comments : []).map((comment) => {
+            const authorInfo = getCommentAuthorInfo(comment);
+            const createdAt = hasProperty(comment, "createdAt")
+              ? new Date(String(comment.createdAt))
+              : new Date();
+            const updatedAt = hasProperty(comment, "updatedAt")
+              ? new Date(String(comment.updatedAt))
+              : createdAt;
+
+            return {
+              id: hasProperty(comment, "id")
+                ? String(comment.id)
+                : `temp-${Math.random().toString(36).substr(2, 9)}`,
+              content: hasProperty(comment, "content")
+                ? String(comment.content)
+                : "",
+              authorId: authorInfo.id,
+              authorName: authorInfo.name,
+              authorImage: authorInfo.image,
+              promptId: apiPrompt.id,
+              createdAt,
+              updatedAt,
+              author: authorInfo.author,
+              prompt: { id: apiPrompt.id },
+            } as UIComment;
+          }),
+          // Map votes to match UIVote type
+          votes: (Array.isArray(votes) ? votes : []).map((vote) => {
+            const voteInfo = getVoteInfo(vote);
+
+            return {
+              id: voteInfo.id,
+              userId: voteInfo.userId,
+              promptId: apiPrompt.id,
+              createdAt: voteInfo.createdAt,
+              updatedAt: voteInfo.updatedAt,
+              user: voteInfo.user,
+              prompt: { id: apiPrompt.id },
+            } as UIVote;
+          }),
+          authorInfo: author
+            ? {
+                id: author.id,
+                name: author.name || "Anonymous",
+                email: author.email || null,
+                image: author.image || null,
+              }
+            : null,
+        };
+
+        console.log("Processed prompt:", uiPrompt);
+        return uiPrompt;
+      } catch (error) {
+        console.error("Error processing prompt data:", error, apiPrompt);
+        // Return a valid UIPrompt with default values in case of error
+        const errorId =
+          typeof apiPrompt?.id === "string" ? apiPrompt.id : "error";
+        const errorTitle =
+          typeof apiPrompt?.title === "string"
+            ? apiPrompt.title
+            : "Error loading prompt";
+
+        return {
+          id: errorId,
+          title: errorTitle,
+          description: "There was an error loading this prompt",
+          content: "",
+          category: "general" as PromptCategory,
+          tags: [],
+          isPublic: false,
+          authorId: "",
+          authorName: "System",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          variables: [],
+          isOwner: false,
+          hasVoted: false,
+          voteCount: 0,
+          commentCount: 0,
+          views: 0,
+          comments: [],
+          votes: [],
+          authorInfo: null,
+        };
+      }
+    },
+    [session?.user?.id]
+  );
 
   // Fetch prompts based on filters and pagination
   const fetchPrompts = useCallback(
     async (isLoadMore = false) => {
       if (!isMountedRef.current) return;
-      
+
       try {
         setError(null);
         if (isLoadMore) {
@@ -127,26 +421,69 @@ export function ExplorePanel() {
             setError("Please sign in to view your prompts");
             return;
           }
-          
+
           const errorData = await response.json().catch(() => null);
-          throw new Error(errorData?.message || `Failed to fetch prompts (${response.status})`);
+          throw new Error(
+            errorData?.message || `Failed to fetch prompts (${response.status})`
+          );
         }
 
-        const data: PaginatedResponse<Prompt> = await response.json();
+        const responseData = await response.json();
+        console.log("Raw API Response:", responseData);
 
         if (!isMountedRef.current) return;
 
-        const processedPrompts = data.data.map(processPromptData);
+        // Handle different response structures
+        const promptsData = responseData.data || responseData.prompts || [];
+        const totalItems =
+          responseData.total ||
+          (Array.isArray(promptsData) ? promptsData.length : 0);
+        const calculatedTotalPages =
+          Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
 
-        setPrompts(prev => 
-          page === 1 ? processedPrompts : [...prev, ...processedPrompts]
+        console.log("Processed data:", {
+          promptsData,
+          totalItems,
+          calculatedTotalPages,
+          isArray: Array.isArray(promptsData),
+        });
+
+        // Process prompts if we have an array
+        let processedPrompts: UIPrompt[] = [];
+        if (Array.isArray(promptsData)) {
+          console.log(`Processing ${promptsData.length} prompts...`);
+          processedPrompts = promptsData
+            .map((prompt) => {
+              try {
+                return processPromptData(prompt);
+              } catch (error) {
+                console.error("Error processing prompt:", error, prompt);
+                return null;
+              }
+            })
+            .filter((prompt): prompt is UIPrompt => prompt !== null);
+        }
+
+        console.log(
+          `Successfully processed ${processedPrompts.length} prompts`
         );
-        setTotalPages(data.totalPages || 1);
+
+        // Update state with the new data
+        setPrompts((prev) => {
+          const newPrompts =
+            page === 1 ? processedPrompts : [...prev, ...processedPrompts];
+          console.log(`Updating prompts: ${newPrompts.length} total prompts`);
+          return newPrompts;
+        });
+
+        console.log(`Setting total pages to: ${calculatedTotalPages}`);
+        setTotalPages(calculatedTotalPages);
       } catch (error) {
         if (!isMountedRef.current) return;
-        
+
         console.error("Error fetching prompts:", error);
-        const errorMessage = error instanceof Error ? error.message : "Failed to load prompts";
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to load prompts";
         setError(errorMessage);
         toast.error(errorMessage);
       } finally {
@@ -200,7 +537,7 @@ export function ExplorePanel() {
         );
 
         // Update selected prompt if it's being viewed
-        setSelectedPrompt((prev) => 
+        setSelectedPrompt((prev) =>
           prev?.id === promptId
             ? {
                 ...prev,
@@ -215,7 +552,8 @@ export function ExplorePanel() {
         toast.success("Vote registered!");
       } catch (error) {
         console.error("Error voting on prompt:", error);
-        const errorMessage = error instanceof Error ? error.message : "Failed to register vote";
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to register vote";
         toast.error(errorMessage);
       }
     },
@@ -258,19 +596,22 @@ export function ExplorePanel() {
   }, []);
 
   // Convert UIPrompt to the format expected by PromptPreviewModal
-  const convertUIPromptForModal = useCallback((uiPrompt: UIPrompt): UIPrompt => {
-    // Return the UIPrompt as-is since PromptPreviewModal expects UIPrompt type
-    // Ensure all required UIPrompt properties are present
-    return {
-      ...uiPrompt,
-      // Ensure optional UI properties have default values if needed
-      isOwner: uiPrompt.isOwner ?? false,
-      hasVoted: uiPrompt.hasVoted ?? false,
-      voteCount: uiPrompt.voteCount ?? 0,
-      commentCount: uiPrompt.commentCount ?? 0,
-      authorInfo: uiPrompt.authorInfo ?? null
-    };
-  }, []);
+  const convertUIPromptForModal = useCallback(
+    (uiPrompt: UIPrompt): UIPrompt => {
+      // Return the UIPrompt as-is since PromptPreviewModal expects UIPrompt type
+      // Ensure all required UIPrompt properties are present
+      return {
+        ...uiPrompt,
+        // Ensure optional UI properties have default values if needed
+        isOwner: uiPrompt.isOwner ?? false,
+        hasVoted: uiPrompt.hasVoted ?? false,
+        voteCount: uiPrompt.voteCount ?? 0,
+        commentCount: uiPrompt.commentCount ?? 0,
+        authorInfo: uiPrompt.authorInfo ?? null,
+      };
+    },
+    []
+  );
 
   // Effects
   useEffect(() => {
