@@ -1,4 +1,4 @@
-import { Prompt } from "@shared/types/prompt.types";
+import { Prompt } from "@prisma/client";
 
 // lib/types/storage.ts
 

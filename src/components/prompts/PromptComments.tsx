@@ -1,26 +1,34 @@
-// frontend/src/components/prompts/PromptComments.tsx
+// src/components/prompts/PromptComments.tsx
 "use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { PromptComment } from "@shared/types/prompt.types";
+import type { Comment, User } from "@/lib/types";
 
 interface PromptCommentsProps {
-  comments: PromptComment[];
+  /** Array of comments to display */
+  comments: Array<Comment & {
+    author: string | Pick<User, 'id' | 'name' | 'email' | 'image'>;
+  }>;
+  /** ID of the prompt these comments belong to */
   promptId: string;
+  /** Callback when a new comment is added */
   onAddComment: (
     promptId: string,
     text: string,
     authorName: string
   ) => Promise<void>;
+  /** Optional class name for the root element */
+  className?: string;
 }
 
 export function PromptComments({
   comments,
   promptId,
   onAddComment,
+  className,
 }: PromptCommentsProps) {
   const [commentText, setCommentText] = useState("");
   const [authorName, setAuthorName] = useState("");
@@ -42,33 +50,34 @@ export function PromptComments({
     }
   };
 
+  const getAuthorName = (author: string | Pick<User, 'id' | 'name' | 'email' | 'image'>): string => {
+    if (!author) return 'Anonymous';
+    return typeof author === 'string' ? author : author.name || 'Anonymous';
+  };
+
   return (
-    <div className="mt-6 space-y-4">
+    <div className={className || "mt-6 space-y-4"}>
       <h3 className="text-lg font-medium text-foreground">
-        Comments ({comments.length})
+        Comments ({comments?.length || 0})
       </h3>
 
       {comments.length > 0 ? (
         <div className="space-y-4">
           {comments.map((comment, index) => (
-            <div 
-              key={comment.id || index} 
+            <div
+              key={comment.id || index}
               className="bg-muted/30 p-4 rounded-lg border border-border transition-colors hover:bg-muted/50"
             >
-              <p className="text-sm text-foreground/90">{comment.text}</p>
-              <div className="flex justify-between mt-3 pt-2 border-t border-border/50">
-                <span className="text-xs text-muted-foreground">
-                  By: <span className="text-foreground/80">{comment.authorName}</span>
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {new Date(comment.createdAt).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </span>
+              <div key={comment.id} className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    {getAuthorName(comment.author)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : 'Unknown date'}
+                  </span>
+                </div>
+                <p className="text-sm text-foreground/90">{comment.content}</p>
               </div>
             </div>
           ))}
@@ -94,8 +103,8 @@ export function PromptComments({
               onChange={(e) => setAuthorName(e.target.value)}
               className="bg-background flex-1"
             />
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={!commentText.trim() || isSubmitting}
               className="w-full sm:w-auto"
             >

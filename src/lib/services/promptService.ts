@@ -1,110 +1,93 @@
-// src/lib/services/promptService.ts
-import { Prompt as PromptType } from '@shared/types/prompt.types';
+// lib/services/promptService.ts
 
-interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
+import type { PromptFormData } from '@/lib/types/prompt.types';
 
-interface PaginatedResponse<T> {
-  items: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-type SavePromptResponse = ApiResponse<PromptType>;
-type FetchPromptsResponse = ApiResponse<PaginatedResponse<PromptType>>;
-
-interface SavePromptParams extends Omit<Partial<PromptType>, 'id' | 'createdAt' | 'updatedAt'> {
-  title: string;
-  content: string;
+interface SavePromptOptions {
+  prompt: Omit<PromptFormData, 'authorId' | 'authorName'>;
   isPublic?: boolean;
 }
 
-/**
- * Saves a prompt to the backend
- * @param prompt The prompt data to save
- * @param isPublic Whether the prompt should be public
- * @returns Promise with the save result
- */
-export const savePrompt = async (
-  prompt: SavePromptParams,
-  isPublic: boolean = true
-): Promise<SavePromptResponse> => {
+export async function savePrompt({ prompt, isPublic = false }: SavePromptOptions) {
+  console.group('savePrompt');
+  console.log('Input data:', { prompt, isPublic });
+  
   try {
-    const endpoint = isPublic 
-      ? `${process.env.NEXT_PUBLIC_API_URL}/api/public/prompts` 
-      : `${process.env.NEXT_PUBLIC_API_URL}/api/prompt`;
-
-    const response = await fetch(endpoint, {
+    const requestBody = {
+      ...prompt,
+      isPublic,
+    };
+    
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+    
+    const response = await fetch('/api/prompts', {
       method: 'POST',
-      headers: {
+      headers: { 
         'Content-Type': 'application/json',
-        // Note: For authenticated routes, the auth middleware will handle the token
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        ...prompt,
-        isPublic,
-      }),
+      body: JSON.stringify(requestBody),
     });
-
-    const data = await response.json();
-
+    
+    console.log('Response status:', response.status);
+    
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to save prompt');
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      let errorDetails: Record<string, unknown> = {};
+      
+      try {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        
+        // Handle different error response formats
+        if (typeof errorData === 'object' && errorData !== null) {
+          if ('error' in errorData && typeof errorData.error === 'string') {
+            errorMessage = errorData.error;
+          } else if ('message' in errorData && typeof errorData.message === 'string') {
+            errorMessage = errorData.message;
+          }
+          errorDetails = errorData;
+        }
+      } catch (e) {
+        console.error('Failed to parse error response:', e);
+      }
+      
+      const error = new Error(errorMessage);
+      Object.assign(error, { details: errorDetails });
+      throw error;
     }
-
-    return { success: true, data };
-  } catch (error: unknown) {
-    console.error('Error saving prompt:', error);
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'An error occurred while saving the prompt';
+    
+    const responseData = await response.json();
+    console.log('Success response:', responseData);
+    
+    return { 
+      success: true, 
+      data: responseData 
+    };
+  } catch (error) {
+    console.error('Error in savePrompt:', error);
     return { 
       success: false, 
-      error: errorMessage
+      error: error instanceof Error ? error.message : 'Failed to save prompt' 
     };
+  } finally {
+    console.groupEnd();
   }
-};
+}
 
-/**
- * Fetches public prompts from the backend
- * @param page Page number for pagination
- * @param limit Number of items per page
- * @param category Filter by category (optional)
- * @returns Promise with the fetched prompts
- */
-export const fetchPublicPrompts = async (
-  page: number = 1,
-  limit: number = 10,
-  category?: string
-): Promise<FetchPromptsResponse> => {
-  try {
-    let url = `${process.env.NEXT_PUBLIC_API_URL}/api/public/prompts?page=${page}&limit=${limit}`;
-    if (category) {
-      url += `&category=${encodeURIComponent(category)}`;
-    }
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to fetch prompts');
-    }
-
-    return { success: true, data };
-  } catch (error: unknown) {
-    console.error('Error fetching prompts:', error);
-    const errorMessage = error instanceof Error
-      ? error.message
-      : 'An error occurred while fetching prompts';
-    return { 
-      success: false, 
-      error: errorMessage
-    };
-  }
-};
+export async function fetchPrompts(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  isPublic?: boolean;
+}) {
+  const queryParams = new URLSearchParams({
+    page: String(params.page || 1),
+    limit: String(params.limit || 10),
+    ...(params.search && { search: params.search }),
+    ...(params.isPublic !== undefined && { isPublic: String(params.isPublic) })
+  });
+  
+  const response = await fetch(`/api/prompts?${queryParams}`);
+  if (!response.ok) throw new Error('Failed to fetch prompts');
+  return response.json();
+}

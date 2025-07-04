@@ -1,32 +1,30 @@
 // src/components/prompts/PromptCard.tsx
 import { useState } from "react";
-import { type Prompt as BasePrompt } from "@shared/types/prompt.types";
-import { MessageCircle, ThumbsUp } from "lucide-react";
+import { MessageCircle, ThumbsUp, User } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
+import { formatDistanceToNow } from "date-fns";
+import type { UIPrompt } from "@/lib/types/database.types";
 
-// Extend the base Prompt type to include MongoDB _id
-interface MongoPrompt extends Omit<BasePrompt, "id"> {
-  _id: string;
-  id?: string; // Make id optional since MongoDB uses _id
-}
-
-export interface PromptCardProps {
-  prompt: MongoPrompt | BasePrompt;
-  onVote?: (promptId: string) => Promise<void>;
-  onView?: (prompt: MongoPrompt | BasePrompt) => void;
+interface PromptCardProps {
+  /** The prompt data to display */
+  prompt: UIPrompt;
+  /** Callback when the card is clicked to view the prompt */
+  onView: (prompt: UIPrompt) => void;
+  /** Callback when the vote button is clicked */
+  onVote: (promptId: string) => Promise<void>;
+  /** Whether the current user is the owner of this prompt */
+  isOwner?: boolean;
+  /** Whether the current user has already voted for this prompt */
+  hasVoted?: boolean;
+  /** Optional class name for the root element */
   className?: string;
 }
 
-// Helper function to get the prompt ID, checking both _id and id fields
-const getPromptId = (prompt: MongoPrompt | BasePrompt): string => {
-  return (prompt as MongoPrompt)._id || prompt.id || "";
-};
-
 export function PromptCard({
   prompt,
+  isOwner = false,
   onVote = async () => {},
   onView,
-  className = "",
 }: PromptCardProps) {
   const [isVoting, setIsVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
@@ -44,15 +42,14 @@ export function PromptCard({
     e.preventDefault();
     e.stopPropagation();
 
-    const promptId = getPromptId(prompt);
-    if (hasVoted || !promptId) {
+    if (hasVoted || !prompt.id) {
       return;
     }
 
     setIsVoting(true);
 
     try {
-      await onVote(promptId);
+      await onVote(prompt.id);
       setHasVoted(true);
     } catch (error) {
       console.error("Error voting for prompt:", error);
@@ -61,12 +58,25 @@ export function PromptCard({
     }
   };
 
+  const voteCount = prompt.votes?.length || 0;
+  const commentCount = prompt.comments?.length || 0;
+
+  const formattedDate = formatDistanceToNow(
+    typeof prompt.createdAt === "string"
+      ? new Date(prompt.createdAt)
+      : prompt.createdAt,
+    { addSuffix: true }
+  );
+
+  const getAuthorName = (): string => {
+    return prompt.authorName || 'Anonymous';
+  };
+
   return (
     <div
       className={cn(
         "group relative bg-card rounded-lg border border-border overflow-hidden transition-all hover:shadow-md hover:border-primary/20 cursor-pointer",
-        "flex flex-col h-full",
-        className
+        "flex flex-col h-full"
       )}
       onClick={handleView}
       role="button"
@@ -79,31 +89,27 @@ export function PromptCard({
       }}
     >
       <div className="p-4 flex-1 flex flex-col">
-        {/* Header with title and view button */}
-        <div className="mb-2">
-          <h3 className="text-sm font-medium text-foreground line-clamp-1 leading-tight">
+        {/* Header with title and owner badge */}
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-sm font-medium text-foreground line-clamp-1 leading-tight flex-1">
             {prompt.title || "Untitled Prompt"}
           </h3>
+          {isOwner && (
+            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              Yours
+            </span>
+          )}
         </div>
 
-        {/* Tags */}
-        {prompt.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-2 mb-3">
-            {prompt.tags.slice(0, 2).map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground"
-              >
-                {tag}
-              </span>
-            ))}
-            {prompt.tags.length > 2 && (
-              <span className="text-[10px] text-muted-foreground self-center">
-                +{prompt.tags.length - 2}
-              </span>
-            )}
-          </div>
-        )}
+        {/* Author and date */}
+        <div className="flex items-center text-xs text-muted-foreground mb-2">
+          <User className="h-3.5 w-3.5 mr-1" />
+          <span className="truncate">
+            {getAuthorName()}
+          </span>
+          <span className="mx-1">•</span>
+          <span className="whitespace-nowrap">{formattedDate}</span>
+        </div>
 
         {/* Description */}
         {prompt.description && (
@@ -112,16 +118,13 @@ export function PromptCard({
           </div>
         )}
 
-        {/* Footer with stats - Grouped in bottom left */}
-        <div className="flex items-center gap-4 mt-auto pt-2 border-t border-border/50">
+        {/* Footer with stats */}
+        <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <button
               type="button"
               className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground flex items-center justify-center"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleVote(e);
-              }}
+              onClick={handleVote}
               disabled={isVoting || hasVoted}
               title="Like"
             >
@@ -129,14 +132,18 @@ export function PromptCard({
                 className={`h-3.5 w-3.5 ${hasVoted ? "fill-foreground" : ""}`}
               />
             </button>
-            <span className="min-w-[20px] text-center">
-              {prompt.votes || 0}
-            </span>
+            <span className="min-w-[20px] text-center">{voteCount}</span>
 
             <div className="w-px h-4 bg-border/50 mx-1"></div>
 
-            <MessageCircle className="h-3.5 w-3.5" />
-            <span className="ml-1">{prompt.comments?.length || 0}</span>
+            <div className="flex items-center">
+              <MessageCircle className="h-3.5 w-3.5 mr-1" />
+              <span>{commentCount}</span>
+            </div>
+          </div>
+
+          <div className="text-xs text-muted-foreground">
+            {prompt.views || 0} views
           </div>
         </div>
       </div>

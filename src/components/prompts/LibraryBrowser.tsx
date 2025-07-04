@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Prompt, PromptCategory } from "@shared/types/prompt.types";
+import type { PromptFormData, PromptCategory } from "@/lib/types/prompt.types";
 
 interface Category {
   id: PromptCategory;
@@ -25,8 +25,8 @@ interface Category {
 
 interface LibraryBrowserProps {
   categories: Category[];
-  instructions: Prompt[];
-  onSelect: (instruction: Prompt) => void;
+  instructions: PromptFormData[];
+  onSelect: (instruction: PromptFormData) => void;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
