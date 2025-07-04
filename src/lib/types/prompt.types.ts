@@ -3,10 +3,13 @@
 // These types are used for specific UI features and API interactions
 
 import type { 
-  PromptVariable, 
-  PromptCategory,
+  PromptVariable as DBPromptVariable, 
+  PromptCategory as DBPromptCategory,
   User
 } from './index';
+
+export type PromptVariable = DBPromptVariable;
+export type PromptCategory = DBPromptCategory;
 
 // Note: ApiResponse and PaginatedResponse are exported from index.ts to avoid conflicts
 /**

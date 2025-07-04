@@ -4,7 +4,8 @@
 import { useState } from "react";
 import { PromptBuilder } from "@/components/prompts/PromptBuilder";
 import { ExplorePanel } from "@/components/prompts/ExplorePanel";
-import { Prompt } from "@shared/types/prompt.types";
+import { Prompt } from "@/lib/types/database.types";
+import { PromptFormData } from "@/lib/types/prompt.types";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
@@ -19,12 +20,34 @@ export default function Home() {
 
   const router = useRouter();
 
-  const handleSavePrompt = async (prompt: Prompt) => {
+  const handleSavePrompt = async (
+    promptData: Omit<PromptFormData, "authorName">
+  ): Promise<void> => {
+    console.group("handleSavePrompt");
+    console.log("Initial prompt data:", promptData);
     setIsSaving(true);
     setSaveError(null);
 
     try {
-      const result = await savePrompt(prompt, prompt.isPublic);
+      const saveData = {
+        prompt: {
+          ...promptData,
+          description: promptData.description || null,
+          variables: promptData.variables || null,
+        },
+        isPublic: promptData.isPublic,
+      };
+
+      console.log("Sending save request with data:", JSON.stringify(saveData, null, 2));
+      
+      // Log the start of the save operation
+      console.log("Calling savePrompt...");
+      const startTime = performance.now();
+      
+      const result = await savePrompt(saveData);
+      const endTime = performance.now();
+      console.log(`Save operation took ${(endTime - startTime).toFixed(2)}ms`);
+      console.log("Save result:", result);
 
       if (result.success) {
         toast({
@@ -36,12 +59,12 @@ export default function Home() {
               size="sm"
               onClick={() => {
                 // If saved as public, navigate to explore page
-                if (prompt.isPublic) {
+                if (promptData.isPublic) {
                   router.push("/explore");
                 }
               }}
             >
-              {prompt.isPublic ? "View in Explore" : "OK"}
+              {promptData.isPublic ? "View in Explore" : "OK"}
             </Button>
           ),
         });
@@ -64,6 +87,7 @@ export default function Home() {
         variant: "destructive",
       });
     } finally {
+      console.groupEnd();
       setIsSaving(false);
     }
   };
@@ -86,9 +110,11 @@ export default function Home() {
           )}
 
           <PromptBuilder
-            key={selectedPrompt?._id || "new-prompt"}
+            key={selectedPrompt?.id || "new-prompt"}
             initialPrompt={selectedPrompt || undefined}
             onSave={handleSavePrompt}
+            onCancel={() => setSelectedPrompt(null)}
+            isSaving={isSaving}
           />
 
           {saveError && (

@@ -35,8 +35,9 @@ import {
   Clock,
   AlertCircle,
   Check,
+  // Loader2,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { formatDistanceToNow } from "date-fns";
 
 import {
@@ -55,7 +56,6 @@ interface ExtendedPromptEditorState {
   variables: Map<string, string>;
   history: string[];
   previewMode: boolean;
-  isLoading?: boolean;
   lastSaved?: Date;
 }
 
@@ -84,7 +84,7 @@ const PROMPT_CATEGORIES: PromptCategory[] = [
 ];
 
 const VARIABLE_TYPES = ["text", "number", "select", "multiline"] as const;
-type VariableType = typeof VARIABLE_TYPES[number];
+type VariableType = (typeof VARIABLE_TYPES)[number];
 
 export function PromptBuilder({
   initialPrompt = {},
@@ -110,10 +110,9 @@ export function PromptBuilder({
     currentPrompt: initializePrompt(),
     isDirty: false,
     validationErrors: {},
-    variables: new Map<string, string>(),
+    variables: new Map(),
     history: [],
     previewMode: false,
-    isLoading: false,
     lastSaved: undefined,
   });
 
@@ -292,13 +291,15 @@ export function PromptBuilder({
         ...prev,
         validationErrors: errors,
       }));
-      toast.error("Please fix validation errors before saving");
+      toast({
+        title: "Validation Error",
+        description: "Please fix validation errors before saving",
+        variant: "destructive",
+      });
       return;
     }
 
     try {
-      setEditorState((prev) => ({ ...prev, isLoading: true }));
-
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { authorName, ...promptData } = editorState.currentPrompt;
       await onSave(promptData);
@@ -307,15 +308,11 @@ export function PromptBuilder({
         ...prev,
         isDirty: false,
         lastSaved: new Date(),
-        isLoading: false,
         validationErrors: {},
       }));
-
-      toast.success("Prompt saved successfully");
     } catch (error) {
-      setEditorState((prev) => ({ ...prev, isLoading: false }));
-      toast.error("Failed to save prompt");
       console.error("Save error:", error);
+      // Let parent component handle error display
     }
   }, [editorState.currentPrompt, onSave, validateForm]);
 
@@ -332,36 +329,7 @@ export function PromptBuilder({
     onCancel();
   }, [onCancel]);
 
-  // Auto-save implementation
-  useEffect(() => {
-    if (!editorState.isDirty || !editorState.currentPrompt || isSaving) return;
-
-    const autoSaveTimer = setTimeout(async () => {
-      try {
-        const errors = validateForm(editorState.currentPrompt);
-        if (Object.keys(errors).length === 0) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { authorName, ...promptData } = editorState.currentPrompt;
-          await onSave(promptData);
-          setEditorState((prev) => ({
-            ...prev,
-            isDirty: false,
-            lastSaved: new Date(),
-          }));
-        }
-      } catch (error) {
-        console.error("Auto-save failed:", error);
-      }
-    }, 2000);
-
-    return () => clearTimeout(autoSaveTimer);
-  }, [
-    editorState.isDirty,
-    editorState.currentPrompt,
-    onSave,
-    validateForm,
-    isSaving,
-  ]);
+  // Auto-save implementation removed to avoid conflicts with parent component
 
   // Memoized preview content
   const previewContent = useMemo(() => {
@@ -423,16 +391,13 @@ export function PromptBuilder({
               <Button
                 variant="outline"
                 onClick={handleCancel}
-                disabled={editorState.isLoading}
+                disabled={isSaving}
               >
                 <X className="w-4 h-4 mr-2" />
                 Cancel
               </Button>
-              <Button
-                onClick={handleSave}
-                disabled={editorState.isLoading || isSaving}
-              >
-                {editorState.isLoading || isSaving ? (
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? (
                   <>
                     <Clock className="w-4 h-4 mr-2 animate-spin" />
                     Saving...
@@ -867,8 +832,8 @@ export function PromptBuilder({
         </CardContent>
 
         {/* Footer */}
-        <CardFooter className="flex items-center justify-between text-sm text-gray-500 border-t">
-          <div className="flex items-center gap-4">
+        <CardFooter className="flex items-center justify-between border-t">
+          <div className="flex items-center gap-4 text-sm text-gray-500">
             {editorState.isDirty && (
               <div className="flex items-center gap-1 text-orange-600">
                 <Clock className="w-4 h-4" />
@@ -889,11 +854,34 @@ export function PromptBuilder({
             {!editorState.isDirty && !editorState.lastSaved && (
               <div className="text-gray-400">No changes yet</div>
             )}
+
+            <div className="text-xs">
+              {editorState.currentPrompt.content.length} characters
+            </div>
           </div>
 
-          <div className="text-xs">
-            {editorState.currentPrompt.content.length} characters
-          </div>
+          {/* <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={onCancel} disabled={isSaving}>
+              Cancel
+            </Button>
+            {/* <Button
+              onClick={handleSave}
+              disabled={isSaving || !editorState.currentPrompt.title.trim() || !editorState.currentPrompt.content.trim()}
+              className="min-w-[80px]"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save
+                </>
+              )}
+            </Button> 
+          </div>*/}
         </CardFooter>
       </Card>
 
