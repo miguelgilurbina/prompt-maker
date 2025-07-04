@@ -6,10 +6,17 @@ This document provides a comprehensive mapping between Prisma database models an
 ## Table of Contents
 - [Core Database Types](#core-database-types)
 - [Frontend-Specific Types](#frontend-specific-types)
+- [Type Conversion Utilities](#type-conversion-utilities)
+- [Common Type Patterns](#common-type-patterns)
 - [API Types](#api-types)
 - [Form Types](#form-types)
+- [Form Validation Types](#form-validation-types)
+- [Component Props](#component-props)
+- [Type Guards](#type-guards)
 - [UI State Types](#ui-state-types)
 - [Type Usage Guidelines](#type-usage-guidelines)
+- [Type Usage Examples](#type-usage-examples)
+- [Type Migration Guide](#type-migration-guide)
 
 ---
 
@@ -201,6 +208,167 @@ interface UIPrompt extends Prompt {
 
 ---
 
+## Type Conversion Utilities
+
+### normalizePrompt
+**Source**: `src/lib/types/prompt.ts`  
+**Purpose**: Converts a database Prompt to a UIPrompt with additional UI metadata
+
+```typescript
+function normalizePrompt(
+  prompt: Prompt, 
+  userId?: string
+): UIPrompt
+```
+
+**Usage**:
+```typescript
+const uiPrompt = normalizePrompt(databasePrompt, currentUserId);
+```
+
+---
+
+## Common Type Patterns
+
+### WithOptional
+**Source**: `src/lib/types/utility.types.ts`  
+**Purpose**: Makes specified properties optional in a type
+
+```typescript
+type WithOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+```
+
+### Nullable
+**Source**: `src/lib/types/utility.types.ts`  
+**Purpose**: Makes all properties nullable
+
+```typescript
+type Nullable<T> = { [P in keyof T]: T[P] | null };
+```
+
+### ApiResponse
+**Source**: `src/lib/types/api.types.ts`  
+**Purpose**: Standard API response wrapper
+
+```typescript
+interface ApiResponse<T> {
+  data: T;
+  error?: string;
+  success: boolean;
+}
+```
+
+### PaginatedResponse
+**Source**: `src/lib/types/api.types.ts`  
+**Purpose**: Standard paginated response
+
+```typescript
+interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+```
+
+---
+
+## Form Validation Types
+
+### ValidationRules
+**Source**: `src/lib/validation/schemas.ts`  
+**Purpose**: Defines validation rules for form fields
+
+```typescript
+interface ValidationRules {
+  required?: boolean | string;
+  minLength?: [number, string?];
+  maxLength?: [number, string?];
+  pattern?: [RegExp, string];
+  validate?: (value: any) => string | boolean;
+}
+```
+
+### FieldError
+**Source**: `src/lib/validation/schemas.ts`  
+**Purpose**: Represents a form field validation error
+
+```typescript
+interface FieldError {
+  field: string;
+  message: string;
+  type: string;
+}
+```
+
+---
+
+## Component Props
+
+### CardProps
+**Source**: `src/components/ui/Card.tsx`  
+**Purpose**: Base props for card components
+
+```typescript
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'outlined' | 'elevated';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'full';
+}
+```
+
+### ButtonProps
+**Source**: `src/components/ui/Button.tsx`  
+**Purpose**: Base props for button components
+
+```typescript
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'link';
+  size?: 'sm' | 'md' | 'lg';
+  isLoading?: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+}
+```
+
+---
+
+## Type Guards
+
+### isUIPrompt
+**Source**: `src/lib/types/type-guards.ts`  
+**Purpose**: Runtime type checking for UIPrompt
+
+```typescript
+function isUIPrompt(prompt: unknown): prompt is UIPrompt {
+  return (
+    typeof prompt === 'object' && 
+    prompt !== null &&
+    'id' in prompt &&
+    'title' in prompt
+  );
+}
+```
+
+### isApiError
+**Source**: `src/lib/types/type-guards.ts`  
+**Purpose**: Runtime type checking for API errors
+
+```typescript
+function isApiError(error: unknown): error is { message: string } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as { message: unknown }).message === 'string'
+  );
+}
+```
+
+---
+
 ## API Types
 
 ### ApiResponse
@@ -320,6 +488,76 @@ interface PromptEditorState {
 ```
 
 **Usage**: Prompt builder/editor component state
+
+---
+
+## Type Usage Examples
+
+### Creating a New Prompt
+```typescript
+const newPrompt: PromptFormData = {
+  title: 'My New Prompt',
+  description: 'A description of my prompt',
+  content: 'This is the prompt content with {{variable}}',
+  category: 'writing',
+  tags: ['creative', 'writing'],
+  isPublic: true,
+  variables: [{
+    id: 'var1',
+    name: 'variable',
+    type: 'text',
+    description: 'A variable to be replaced',
+    required: true
+  }]
+};
+```
+
+### Handling API Responses
+```typescript
+async function fetchPrompt(id: string): Promise<Prompt> {
+  const response = await fetch(`/api/prompts/${id}`);
+  if (!response.ok) {
+    const error: ErrorResponse = await response.json();
+    throw new Error(error.message || 'Failed to fetch prompt');
+  }
+  return response.json();
+}
+```
+
+### Using Type Guards
+```typescript
+function processPrompt(prompt: unknown) {
+  if (isUIPrompt(prompt)) {
+    // TypeScript now knows this is a UIPrompt
+    console.log(`Processing prompt: ${prompt.title}`);
+  } else {
+    console.error('Invalid prompt format');
+  }
+}
+```
+
+---
+
+## Type Migration Guide
+
+### From Database to UI
+When moving data from the database to the UI:
+1. Use `normalizePrompt` to convert database prompts to UI prompts
+2. Add UI-specific metadata (isOwner, hasVoted, etc.)
+3. Handle null/undefined cases appropriately
+
+### From UI to Database
+When sending data back to the server:
+1. Strip UI-specific fields using `Omit<UIPrompt, 'isOwner' | 'hasVoted'>`
+2. Validate the data matches the expected database schema
+3. Use type assertions only when necessary and safe
+
+### Handling Version Changes
+When database models change:
+1. Update the corresponding TypeScript interfaces
+2. Add migration scripts for existing data
+3. Update any type guards or validation functions
+4. Test thoroughly with both old and new data formats
 
 ---
 

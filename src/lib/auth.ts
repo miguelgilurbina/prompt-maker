@@ -61,11 +61,16 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials): Promise<User | null> {
+        console.log('\n🔑 Authorization attempt started');
+        
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          const error = new Error('Email and password are required');
+          console.error('❌ Authorization failed:', error.message);
+          throw error;
         }
         
         const { email, password } = credentials as AuthCredentials;
+        console.log(`🔍 Looking up user: ${email}`);
         
         try {
           // Find user by email
@@ -76,37 +81,62 @@ export const authOptions: NextAuthOptions = {
               email: true, 
               name: true, 
               image: true, 
-              hashedPassword: true 
+              hashedPassword: true,
+              emailVerified: true
             }
           });
 
-          if (!user?.hashedPassword) {
-            return null;
+          if (!user) {
+            const error = new Error('Invalid email or password');
+            console.error(`❌ User not found: ${email}`);
+            throw error;
           }
 
+          if (!user.hashedPassword) {
+            const error = new Error('No password set for this account');
+            console.error('❌ No password hash found for user:', user.id);
+            throw error;
+          }
+
+          console.log(`🔑 Found user: ${user.id}`);
+          console.log(`   Email verified: ${user.emailVerified ? '✅' : '❌'}`);
+          
           // Compare passwords
+          console.log('🔒 Verifying password...');
           const isValid = await bcrypt.compare(password, user.hashedPassword);
-
+          
           if (!isValid) {
+            console.error('❌ Invalid password for user:', user.id);
             return null;
           }
 
+          console.log('✅ Password verified successfully');
+          
           // Return user object without the password
-          return {
+          const userWithoutPassword = {
             id: user.id,
             email: user.email,
-            name: user.name || user.email?.split('@')[0] || 'User',
-            image: user.image
-          } as User;
+            name: user.name,
+            image: user.image,
+            emailVerified: user.emailVerified
+          };
+          
+          console.log('🎉 Authentication successful!');
+          console.log('   User data:', JSON.stringify(userWithoutPassword, null, 2));
+          
+          return userWithoutPassword;
         } catch (error) {
-          console.error("Authentication error:", error)
-          return null
+          console.error('❌ Unexpected error during authorization:', error);
+          // Don't leak sensitive error details to client
+          throw new Error('Authentication failed. Please try again.');
         }
       }
     })
   ],
   callbacks: {
     async session({ session, token }: { session: Session; token: JWT }): Promise<Session> {
+      console.log('🔍 Session callback triggered');
+      
       try {
         if (token?.sub) {
           // Add user ID to session from token
@@ -117,64 +147,69 @@ export const authOptions: NextAuthOptions = {
           if (token.name) session.user.name = token.name;
           if (token.picture) session.user.image = token.picture;
           
-          // Only fetch from database if we're missing critical data
-          if (!session.user.name || !session.user.email) {
-            try {
-              const user = await prisma.user.findUnique({
-                where: { id: token.sub },
-                select: { name: true, email: true, image: true }
-              });
-              
-              if (user) {
-                session.user.name = user.name || session.user.name || '';
-                session.user.email = user.email || session.user.email || '';
-                session.user.image = user.image || session.user.image || null;
-              }
-            } catch (dbError) {
-              console.error('Database error in session callback:', dbError);
-            }
+          // Add email verification status if available
+          if ('emailVerified' in token) {
+            // @ts-expect-error - Extending session type
+            session.user.emailVerified = token.emailVerified;
           }
+          
+          console.log('✅ Session data updated with token info');
         }
         
+        console.log('🔑 Final session data:', JSON.stringify(session, null, 2));
         return session;
+        
       } catch (error) {
-        console.error('Session callback error:', error);
-        // Return a minimal valid session on error
-        return {
-          ...session,
-          user: {
-            id: token?.sub || '',
-            email: token?.email || null,
-            name: token?.name || null,
-            image: token?.picture || null
-          }
-        };
+        console.error('❌ Error in session callback:', error);
+        return session;
       }
     },
-    async jwt({ token, user, trigger, session }): Promise<JWT> {
+    
+    async jwt({ token, user, trigger, session }: { 
+      token: JWT; 
+      user?: User; 
+      trigger?: 'signIn' | 'signUp' | 'update';
+      session?: { user?: Partial<User> };
+    }): Promise<JWT> {
+      console.log('🔑 JWT callback triggered');
+      
       try {
         // Initial sign in
         if (user) {
+          console.log('🔑 Processing new sign in');
           token.sub = user.id;
           token.email = user.email || null;
           token.name = user.name || null;
           token.picture = user.image || null;
+          
+          // Add email verification status if available
+          // Add email verification status if available in the user object
+          if (user && 'emailVerified' in user) {
+            // We're safely extending the JWT type with emailVerified
+            const verifiedValue = user.emailVerified;
+            if (verifiedValue instanceof Date || verifiedValue === null) {
+              (token as JWT & { emailVerified?: Date | null }).emailVerified = verifiedValue;
+            }
+          }
         }
         
-        // Update token with data from session if this is a session update
+        // Handle session updates (e.g., from client-side session updates)
         if (trigger === 'update' && session?.user) {
-          return { 
-            ...token, 
+          console.log('🔄 Updating token with new session data');
+          return {
+            ...token,
             email: session.user.email || token.email,
             name: session.user.name || token.name,
             picture: session.user.image || token.picture
-          } as JWT;
+          };
         }
         
-        return token as JWT;
+        console.log('✅ Final token data:', JSON.stringify(token, null, 2));
+        return token;
+        
       } catch (error) {
-        console.error('JWT callback error:', error);
-        return token as JWT;
+        console.error('❌ Error in JWT callback:', error);
+        return token;
       }
     }
   },
