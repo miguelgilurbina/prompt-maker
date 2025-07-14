@@ -2,27 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+// import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { ThemeToggle } from "@/components/themes/ThemeThoggle";
 import { Button } from "@/components/ui/button";
 import { Github, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 
-type NavLink = {
-  name: string;
-  href: string;
-  protected?: boolean;
-};
-
-const NAV_LINKS: NavLink[] = [
-  { name: "Explore", href: "/explore" },
-  { name: "My Prompts", href: "/my-prompts", protected: true },
-];
-
 export function Header() {
   const { data: session, status } = useSession();
-  const pathname = usePathname();
+  // const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const isLoading = status === "loading";
@@ -45,14 +34,14 @@ export function Header() {
   const handleSignOut = async (e: React.MouseEvent) => {
     e.preventDefault();
     try {
-      await signOut({ callbackUrl: '/' });
+      await signOut({ callbackUrl: "/" });
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
     }
   };
 
   return (
-    <header 
+    <header
       className={cn(
         "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all",
         isScrolled && "shadow-sm"
@@ -61,8 +50,8 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <div className="flex items-center">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="mr-8 flex items-center space-x-2 font-bold"
             onClick={closeMobileMenu}
           >
@@ -70,24 +59,6 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {NAV_LINKS.map((link) => {
-              if (link.protected && !session) return null;
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary",
-                    isActive ? "text-primary" : "text-muted-foreground"
-                  )}
-                >
-                  {link.name}
-                </Link>
-              );
-            })}
-          </nav>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -95,9 +66,14 @@ export function Header() {
           <div className="hidden md:flex">
             <ThemeToggle />
           </div>
-          
+
           {/* GitHub Link */}
-          <Button variant="ghost" size="icon" asChild className="hidden md:flex">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            className="hidden md:flex"
+          >
             <Link
               href="https://github.com/miguelgilurbina/prompt-maker"
               target="_blank"
@@ -117,11 +93,7 @@ export function Header() {
                 <span className="text-sm text-muted-foreground mr-2">
                   {session.user?.name || session.user?.email}
                 </span>
-                <Button 
-                  onClick={handleSignOut}
-                  variant="ghost" 
-                  size="sm"
-                >
+                <Button onClick={handleSignOut} variant="ghost" size="sm">
                   Sign out
                 </Button>
               </div>
@@ -145,7 +117,11 @@ export function Header() {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           >
-            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isMobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </Button>
         </div>
       </div>
@@ -153,27 +129,6 @@ export function Header() {
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="absolute inset-x-0 top-16 z-50 border-t bg-background px-4 py-2 shadow-lg md:hidden">
-          <div className="space-y-2 py-2">
-            {NAV_LINKS.map((link) => {
-              if (link.protected && !session) return null;
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "block rounded-md px-3 py-2 text-sm font-medium",
-                    isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  )}
-                  onClick={closeMobileMenu}
-                >
-                  {link.name}
-                </Link>
-              );
-            })}
-          </div>
           <div className="border-t pt-2">
             {isLoading ? (
               <div className="space-y-2">
@@ -185,9 +140,9 @@ export function Header() {
                 <div className="px-3 py-2 text-sm text-muted-foreground">
                   {session.user?.name || session.user?.email}
                 </div>
-                <Button 
+                <Button
                   onClick={handleSignOut}
-                  variant="ghost" 
+                  variant="ghost"
                   className="w-full justify-start px-3"
                 >
                   Sign out
