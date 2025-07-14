@@ -40,35 +40,16 @@ import {
 import { toast } from "@/components/ui/toast";
 import { formatDistanceToNow } from "date-fns";
 
-import {
-  Prompt,
-  PromptCategory,
-  PromptVariable,
-  User,
-} from "@/lib/types/database.types";
-import { PromptFormData } from "@/lib/types/prompt.types";
-
-// Extended PromptEditorState with missing properties
-interface ExtendedPromptEditorState {
-  currentPrompt: PromptFormData;
-  isDirty: boolean;
-  validationErrors: Record<string, string>;
-  variables: Map<string, string>;
-  history: string[];
-  previewMode: boolean;
-  lastSaved?: Date;
-}
+import { PromptFormData, PromptCategory } from "@/lib/types/prompt.types";
 
 // Component Interface
 interface PromptBuilderProps {
   /** Initial prompt data to edit, if any */
-  initialPrompt?: Partial<Prompt>;
+  initialPrompt?: Partial<PromptFormData>;
   /** Callback when the prompt is saved */
-  onSave: (prompt: Omit<PromptFormData, "authorName">) => Promise<void>;
+  onSave: (data: Omit<PromptFormData, "authorName">) => Promise<void>;
   /** Callback when the form is cancelled */
   onCancel: () => void;
-  /** Current user session */
-  user?: User | null;
   /** Loading state for save operations */
   isSaving?: boolean;
 }
@@ -83,9 +64,6 @@ const PROMPT_CATEGORIES: PromptCategory[] = [
   "custom",
 ];
 
-const VARIABLE_TYPES = ["text", "number", "select", "multiline"] as const;
-type VariableType = (typeof VARIABLE_TYPES)[number];
-
 export function PromptBuilder({
   initialPrompt = {},
   onSave,
@@ -98,26 +76,20 @@ export function PromptBuilder({
     description: initialPrompt.description || null,
     content: initialPrompt.content || "",
     category: initialPrompt.category || "general",
-    tags: initialPrompt.tags || [],
-    variables: initialPrompt.variables || null,
     isPublic: initialPrompt.isPublic ?? true,
     authorName: initialPrompt.authorName || null,
-    authorId: initialPrompt.authorId || null,
   });
 
   // State management
-  const [editorState, setEditorState] = useState<ExtendedPromptEditorState>({
+  const [editorState, setEditorState] = useState({
     currentPrompt: initializePrompt(),
     isDirty: false,
     validationErrors: {},
-    variables: new Map(),
-    history: [],
     previewMode: false,
     lastSaved: undefined,
   });
 
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
-  const [newTag, setNewTag] = useState("");
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
 
   // Validation function
@@ -144,38 +116,6 @@ export function PromptBuilder({
         errors.category = "Category is required";
       }
 
-      // Tags validation
-      if (formData.tags.length > 10) {
-        errors.tags = "Maximum 10 tags allowed";
-      }
-
-      formData.tags.forEach((tag) => {
-        if (tag.length > 50) {
-          errors.tags = `Tag "${tag}" is too long (max 50 characters)`;
-        }
-      });
-
-      // Variables validation
-      const variableNames = formData.variables?.map((v) =>
-        v.name.toLowerCase()
-      );
-      const uniqueNames = new Set(variableNames);
-      if (variableNames?.length !== uniqueNames.size) {
-        errors.variables = "Variable names must be unique";
-      }
-
-      formData.variables?.forEach((variable, index) => {
-        if (!variable.name.trim()) {
-          errors.variables = `Variable ${index + 1} name is required`;
-        }
-        if (
-          variable.type === "select" &&
-          (!variable.options || variable.options.length === 0)
-        ) {
-          errors.variables = `Variable "${variable.name}" must have options for select type`;
-        }
-      });
-
       return errors;
     },
     []
@@ -200,85 +140,10 @@ export function PromptBuilder({
     []
   );
 
-  // Variable management
-  const addVariable = useCallback(() => {
-    const newVariable: PromptVariable = {
-      id: crypto.randomUUID(),
-      name: "",
-      type: "text",
-      required: false,
-    };
-
-    handleFieldChange("variables", [
-      ...(editorState.currentPrompt?.variables || []),
-      newVariable,
-    ]);
-  }, [editorState.currentPrompt?.variables, handleFieldChange]);
-
-  const removeVariable = useCallback(
-    (variableId: string) => {
-      const updatedVariables =
-        editorState.currentPrompt?.variables?.filter(
-          (v) => v.id !== variableId
-        ) || [];
-      handleFieldChange("variables", updatedVariables);
-    },
-    [editorState.currentPrompt?.variables, handleFieldChange]
-  );
-
-  const updateVariable = useCallback(
-    (variableId: string, updates: Partial<PromptVariable>) => {
-      const updatedVariables =
-        editorState.currentPrompt?.variables?.map((v) =>
-          v.id === variableId ? { ...v, ...updates } : v
-        ) || [];
-      handleFieldChange("variables", updatedVariables);
-    },
-    [editorState.currentPrompt?.variables, handleFieldChange]
-  );
-
-  // Tag management
-  const addTag = useCallback(
-    (tag: string) => {
-      const trimmedTag = tag.trim();
-      if (!trimmedTag || editorState.currentPrompt?.tags.includes(trimmedTag))
-        return;
-
-      const updatedTags = [
-        ...(editorState.currentPrompt?.tags || []),
-        trimmedTag,
-      ];
-      handleFieldChange("tags", updatedTags);
-      setNewTag("");
-    },
-    [editorState.currentPrompt?.tags, handleFieldChange]
-  );
-
-  const removeTag = useCallback(
-    (tagToRemove: string) => {
-      const updatedTags =
-        editorState.currentPrompt?.tags?.filter((tag) => tag !== tagToRemove) ||
-        [];
-      handleFieldChange("tags", updatedTags);
-    },
-    [editorState.currentPrompt?.tags, handleFieldChange]
-  );
-
   // Preview generation
-  const generatePreview = useCallback(
-    (content: string, variables: PromptVariable[]) => {
-      let preview = content;
-
-      variables.forEach((variable) => {
-        const placeholder = `{{${variable.name}}}`;
-        const value = variable.defaultValue || `[${variable.name}]`;
-        preview = preview.replace(new RegExp(placeholder, "g"), String(value));
-      });
-
-      return preview;
-    },
-    []
-  );
+  const generatePreview = useCallback((content: string) => {
+    return content;
+  }, []);
 
   // Save handlers
   const handleSave = useCallback(async () => {
@@ -329,15 +194,10 @@ export function PromptBuilder({
     onCancel();
   }, [onCancel]);
 
-  // Auto-save implementation removed to avoid conflicts with parent component
-
   // Memoized preview content
   const previewContent = useMemo(() => {
     if (!editorState.currentPrompt) return "";
-    return generatePreview(
-      editorState.currentPrompt.content,
-      editorState.currentPrompt.variables || []
-    );
+    return generatePreview(editorState.currentPrompt.content);
   }, [editorState.currentPrompt, generatePreview]);
 
   // Keyboard shortcuts
@@ -469,7 +329,7 @@ export function PromptBuilder({
                   </Label>
                   <Textarea
                     id="content"
-                    placeholder="Enter your prompt content here. Use {{variable_name}} for variables."
+                    placeholder="Enter your prompt content here."
                     value={editorState.currentPrompt.content}
                     onChange={(e) =>
                       handleFieldChange("content", e.target.value)
@@ -546,213 +406,6 @@ export function PromptBuilder({
 
               <div className="border-t border-border my-4" />
 
-              {/* Tags */}
-              <div className="space-y-4">
-                <Label>Tags</Label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {editorState.currentPrompt.tags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => removeTag(tag)}
-                        className="hover:text-red-500"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add tag"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        addTag(newTag);
-                      }
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => addTag(newTag)}
-                    disabled={!newTag.trim()}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                {editorState.validationErrors.tags && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      {editorState.validationErrors.tags}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-
-              <div className="border-t border-border my-4" />
-
-              {/* Variables */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Variables</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addVariable}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Variable
-                  </Button>
-                </div>
-
-                {!editorState.currentPrompt.variables ||
-                editorState.currentPrompt.variables.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    No variables defined. Add variables to make your prompt
-                    dynamic.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {editorState.currentPrompt.variables?.map(
-                      (variable, index) => (
-                        <Card key={variable.id} className="p-4">
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-sm font-medium">
-                                Variable {index + 1}
-                              </Label>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeVariable(variable.id)}
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                              <div className="space-y-2">
-                                <Label htmlFor={`var-name-${variable.id}`}>
-                                  Name
-                                </Label>
-                                <Input
-                                  id={`var-name-${variable.id}`}
-                                  placeholder="variable_name"
-                                  value={variable.name}
-                                  onChange={(e) =>
-                                    updateVariable(variable.id, {
-                                      name: e.target.value,
-                                    })
-                                  }
-                                />
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label htmlFor={`var-type-${variable.id}`}>
-                                  Type
-                                </Label>
-                                <Select
-                                  value={variable.type}
-                                  onValueChange={(value) =>
-                                    updateVariable(variable.id, {
-                                      type: value as VariableType,
-                                    })
-                                  }
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {VARIABLE_TYPES.map((type) => (
-                                      <SelectItem key={type} value={type}>
-                                        {type.charAt(0).toUpperCase() +
-                                          type.slice(1)}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label htmlFor={`var-default-${variable.id}`}>
-                                  Default Value
-                                </Label>
-                                <Input
-                                  id={`var-default-${variable.id}`}
-                                  placeholder="Optional default"
-                                  value={variable.defaultValue || ""}
-                                  onChange={(e) =>
-                                    updateVariable(variable.id, {
-                                      defaultValue: e.target.value || undefined,
-                                    })
-                                  }
-                                />
-                              </div>
-                            </div>
-
-                            {variable.type === "select" && (
-                              <div className="space-y-2">
-                                <Label>Options (comma-separated)</Label>
-                                <Input
-                                  placeholder="Option 1, Option 2, Option 3"
-                                  value={variable.options?.join(", ") || ""}
-                                  onChange={(e) =>
-                                    updateVariable(variable.id, {
-                                      options: e.target.value
-                                        .split(",")
-                                        .map((opt) => opt.trim())
-                                        .filter(Boolean),
-                                    })
-                                  }
-                                />
-                              </div>
-                            )}
-
-                            <div className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`var-required-${variable.id}`}
-                                checked={variable.required}
-                                onCheckedChange={(checked) =>
-                                  updateVariable(variable.id, {
-                                    required: !!checked,
-                                  })
-                                }
-                              />
-                              <Label htmlFor={`var-required-${variable.id}`}>
-                                Required
-                              </Label>
-                            </div>
-                          </div>
-                        </Card>
-                      )
-                    )}
-                  </div>
-                )}
-
-                {editorState.validationErrors.variables && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      {editorState.validationErrors.variables}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-
-              <div className="border-t border-border my-4" />
-
               {/* Visibility Settings */}
               <div className="space-y-4">
                 <Label>Visibility</Label>
@@ -770,14 +423,11 @@ export function PromptBuilder({
                     ) : (
                       <EyeOff className="w-4 h-4" />
                     )}
-                    {editorState.currentPrompt.isPublic ? "Public" : "Private"}
+                    {editorState.currentPrompt.isPublic
+                      ? "Public (visible to everyone)"
+                      : "Private (only visible to you)"}
                   </Label>
                 </div>
-                <p className="text-sm text-gray-500">
-                  {editorState.currentPrompt.isPublic
-                    ? "This prompt will be visible to all users"
-                    : "This prompt will only be visible to you"}
-                </p>
               </div>
             </TabsContent>
 
@@ -785,31 +435,7 @@ export function PromptBuilder({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="text-lg font-semibold">Live Preview</Label>
-                  <Badge variant="outline">
-                    {editorState.currentPrompt.variables?.length || 0} variables
-                  </Badge>
                 </div>
-
-                {(editorState.currentPrompt.variables?.length || 0) > 0 && (
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-sm text-blue-800 mb-2">
-                      Variables are shown with their default values or
-                      placeholders:
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {editorState.currentPrompt.variables?.map((variable) => (
-                        <Badge
-                          key={variable.id}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {variable.name}:{" "}
-                          {variable.defaultValue || `[${variable.name}]`}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 <div className="border rounded-lg p-4 bg-gray-50 min-h-[200px]">
                   <div className="whitespace-pre-wrap font-mono text-sm">
@@ -821,8 +447,7 @@ export function PromptBuilder({
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      Preview could not be generated. Check your prompt content
-                      and variables.
+                      Preview could not be generated. Check your prompt content.
                     </AlertDescription>
                   </Alert>
                 )}

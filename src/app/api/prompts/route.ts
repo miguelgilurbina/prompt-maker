@@ -8,26 +8,13 @@ import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 // Define the schema for prompt creation
-const promptVariableSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  type: z.enum(['text', 'number', 'select', 'multiline']),
-  required: z.boolean().default(false),
-  defaultValue: z.string().optional(),
-  options: z.array(z.string()).optional(),
-  description: z.string().optional(),
-});
-
 const createPromptSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
   description: z.string().optional().nullable(),
   content: z.string().min(1, 'Content is required'),
   category: z.string().default('general'),
-  tags: z.array(z.string()).default([]),
   isPublic: z.boolean().default(false),
-  variables: z.array(promptVariableSchema).optional().nullable(),
 });
-
 
 // Helper function to get the authenticated user's session
 async function getAuthenticatedSession() {
@@ -135,20 +122,19 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const promptData = validation.data;
+    const { title, description, content, category, isPublic } = validation.data;
     
     // Create the prompt in the database
     const prompt = await prisma.prompt.create({
       data: {
-        title: promptData.title,
-        description: promptData.description,
-        content: promptData.content,
-        category: promptData.category,
-        tags: promptData.tags,
-        isPublic: promptData.isPublic,
-        variables: promptData.variables ? (promptData.variables as Prisma.InputJsonValue) : Prisma.DbNull,
-        authorId: session.user.id,
-        authorName: session.user.name || null,
+        title,
+        description,
+        content,
+        category,
+        isPublic,
+        author: {
+          connect: { id: session.user.id },
+        },
       },
       include: {
         author: {

@@ -1,61 +1,46 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-import type { PromptFormData, PromptVariable, PromptCategory } from "@/lib/types/prompt.types";
-import type { PromptEditorState } from "@/lib/types/ui-states.types";
+import type { PromptCategory, PromptFormData } from "@/lib/types";
 
 // Import types from database
 import type { Prompt as DBPrompt } from "@/lib/types/database.types";
 
-// Helper type to convert DBPrompt to PromptFormData
-const dbPromptToFormData = (dbPrompt: DBPrompt): PromptFormData => ({
-  id: dbPrompt.id,
-  title: dbPrompt.title,
-  description: dbPrompt.description,
-  content: dbPrompt.content,
-  category: dbPrompt.category as PromptCategory,
-  tags: dbPrompt.tags,
-  isPublic: dbPrompt.isPublic,
-  variables: dbPrompt.variables as PromptVariable[] | null,
-  authorId: dbPrompt.authorId,
-  authorName: dbPrompt.author?.name || null,
-});
+interface PromptEditorState {
+  currentPrompt: PromptFormData;
+  isDirty: boolean;
+  validationErrors: Record<string, string>;
+  previewMode: boolean;
+  lastSaved?: Date;
+}
 
 interface PromptContextType {
   // Editor state
   editorState: PromptEditorState;
   categories: PromptCategory[];
   setCategory: (category: PromptCategory) => void;
-  
+
   // Prompt manipulation methods
   setCurrentPrompt: (prompt: DBPrompt | PromptFormData | null) => void;
   updatePromptContent: (content: string) => void;
-  updateVariable: (id: string, value: string) => void;
   togglePreviewMode: () => void;
-  
-  // Variable management
-  extractVariables: (content: string) => PromptVariable[];
-  replaceVariables: (content: string) => string;
-  
+
   // History management
   addToHistory: (content: string) => void;
-  
+
   // Dirty state
   setIsDirty: (isDirty: boolean) => void;
 }
 
 const initialEditorState: PromptEditorState = {
   currentPrompt: {
-    title: '',
+    title: "",
     description: null,
-    content: '',
-    category: 'general',
+    content: "",
+    category: "general",
     tags: [],
     isPublic: false,
-    variables: null,
   },
   isDirty: false,
   validationErrors: {},
-  variables: new Map<string, string>(),
-  history: [],
   previewMode: false,
 };
 
@@ -67,31 +52,22 @@ export const PromptProvider: React.FC<{ children: React.ReactNode }> = ({
   const [editorState, setEditorState] =
     useState<PromptEditorState>(initialEditorState);
 
-  const setCurrentPrompt = useCallback((prompt: DBPrompt | PromptFormData | null) => {
-    if (!prompt) {
-      // Reset to initial state if prompt is null
-      setEditorState(initialEditorState);
-      return;
-    }
+  const setCurrentPrompt = useCallback(
+    (prompt: DBPrompt | PromptFormData | null) => {
+      if (!prompt) {
+        // Reset to initial state if prompt is null
+        setEditorState(initialEditorState);
+        return;
+      }
 
-    // Convert DBPrompt to PromptFormData if needed
-    const formData = 'author' in prompt ? dbPromptToFormData(prompt) : prompt;
-    
-    setEditorState((prev) => ({
-      ...prev,
-      currentPrompt: formData,
-      isDirty: false,
-      variables: new Map(
-        formData.variables?.map((v: PromptVariable) => [
-          v.id, 
-          // Ensure value is always a string
-          v.defaultValue !== undefined && v.defaultValue !== null 
-            ? String(v.defaultValue) 
-            : ""
-        ]) || []
-      ),
-    }));
-  }, []);
+      setEditorState((prev) => ({
+        ...prev,
+        currentPrompt: prompt,
+        isDirty: false,
+      }));
+    },
+    []
+  );
 
   const updatePromptContent = useCallback((content: string) => {
     setEditorState((prev) => ({
@@ -124,40 +100,6 @@ export const PromptProvider: React.FC<{ children: React.ReactNode }> = ({
     }));
   }, []);
 
-  const updateVariable = useCallback((id: string, value: string) => {
-    setEditorState((prev) => ({
-      ...prev,
-      variables: new Map(prev.variables).set(id, value),
-      isDirty: true,
-    }));
-  }, []);
-
-  const extractVariables = useCallback((content: string): PromptVariable[] => {
-    const regex = /\{\{([^}]+)\}\}/g;
-    const matches = [...content.matchAll(regex)];
-    return matches.map((match, index) => ({
-      id: `var_${index}`,
-      name: match[1].trim(),
-      type: "text",
-    }));
-  }, []);
-
-  const replaceVariables = useCallback(
-    (content: string): string => {
-      let result = content;
-      editorState.variables.forEach((value, key) => {
-        const variable = editorState.currentPrompt?.variables?.find(
-          (v) => v.id === key
-        );
-        if (variable) {
-          result = result.replace(`{{${variable.name}}}`, value);
-        }
-      });
-      return result;
-    },
-    [editorState.variables, editorState.currentPrompt]
-  );
-
   const togglePreviewMode = useCallback(() => {
     setEditorState((prev) => ({
       ...prev,
@@ -187,9 +129,6 @@ export const PromptProvider: React.FC<{ children: React.ReactNode }> = ({
         editorState,
         setCurrentPrompt,
         updatePromptContent,
-        updateVariable,
-        extractVariables,
-        replaceVariables,
         togglePreviewMode,
         addToHistory,
         setIsDirty,
