@@ -33,17 +33,20 @@ export default function Home() {
         prompt: {
           ...promptData,
           description: promptData.description || null,
-          variables: promptData.variables || null,
+          // variables: promptData.variables || null,
         },
         isPublic: promptData.isPublic,
       };
 
-      console.log("Sending save request with data:", JSON.stringify(saveData, null, 2));
-      
+      console.log(
+        "Sending save request with data:",
+        JSON.stringify(saveData, null, 2)
+      );
+
       // Log the start of the save operation
       console.log("Calling savePrompt...");
       const startTime = performance.now();
-      
+
       const result = await savePrompt(saveData);
       const endTime = performance.now();
       console.log(`Save operation took ${(endTime - startTime).toFixed(2)}ms`);

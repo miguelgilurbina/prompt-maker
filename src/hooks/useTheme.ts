@@ -2,33 +2,45 @@ import { useState, useEffect } from 'react'
 import { Theme } from '@/lib/types/theme'
 import { themes } from '@/lib/themes'
 
-export function useTheme() {
+type ThemeValue = string | Record<string, string | Record<string, string>>;
 
-  const [currentTheme, setCurrentTheme] = useState<Theme>(themes.japaneseMinimal)
+export function useTheme() {
+  const [currentTheme, setTheme] = useState<Theme>(themes.japaneseMinimal)
 
   useEffect(() => {
-    const root = document.documentElement
+    const root = document.documentElement;
     
-    // Establecer el atributo data-theme
-    root.setAttribute('data-theme', currentTheme.name.toLowerCase())
+    // Set theme attribute
+    root.setAttribute('data-theme', currentTheme.name.toLowerCase());
     
-    // Aplicar variables CSS
-    Object.entries(currentTheme.colors).forEach(([key, value]) => {
-      root.style.setProperty(`--${key}`, value)
-    })
+    const applyNestedVariables = (obj: ThemeValue, prefix = '') => {
+      if (typeof obj === 'string') {
+        root.style.setProperty(`--${prefix}`, obj);
+        return;
+      }
 
-    // Aplicar fuentes
-    Object.entries(currentTheme.fonts).forEach(([key, value]) => {
-      root.style.setProperty(`--font-${key}`, value)
-    })
-
-    // Añadir clase de transición
-    root.classList.add('theme-transition')
+      Object.entries(obj).forEach(([key, value]) => {
+        const cssVarName = prefix ? `${prefix}-${key}` : key;
+        
+        if (typeof value === 'object' && value !== null) {
+          applyNestedVariables(value, cssVarName);
+        } else if (typeof value === 'string') {
+          root.style.setProperty(`--${cssVarName}`, value);
+        }
+      });
+    };
+  
+    // Apply colors and fonts
+    applyNestedVariables(currentTheme.colors);
+    applyNestedVariables(currentTheme.fonts, 'font');
+  
+    // Add transition class
+    root.classList.add('theme-transition');
     
     return () => {
-      root.classList.remove('theme-transition')
-    }
-  }, [currentTheme])
+      root.classList.remove('theme-transition');
+    };
+  }, [currentTheme]);
 
-  return { currentTheme, setTheme: setCurrentTheme }
+  return { currentTheme, setTheme };
 }

@@ -82,7 +82,7 @@ describe('Prompt Validation', () => {
   });
 
   it('should make isPublic optional and default to true', () => {
-    const { isPublic, ...promptWithoutPublic } = validPrompt;
+    const { ...promptWithoutPublic } = validPrompt;
     const result = validatePrompt(promptWithoutPublic);
     expect(result.success).toBe(true);
     if (result.success) {

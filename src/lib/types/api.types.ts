@@ -3,7 +3,6 @@
 
 import type { 
   Prompt, 
-  PromptVariable, 
   PromptCategory,
   User 
 } from './database.types';
@@ -41,9 +40,9 @@ export interface PromptApiRequest {
   description?: string | null;
   content: string;
   category: PromptCategory;
-  tags: string[];
+  // tags: string[];
   isPublic: boolean;
-  variables?: PromptVariable[];
+  // variables?: PromptVariable[];
   authorName?: string | null;
   authorId?: string | null;
 }

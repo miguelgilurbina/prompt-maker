@@ -102,7 +102,9 @@ export function PromptCard({
   );
 
   const getAuthorName = (): string => {
-    return prompt.authorName || "Anonymous";
+    if (prompt.authorInfo?.name) return prompt.authorInfo.name;
+    if (prompt.authorInfo?.email) return prompt.authorInfo.email.split("@")[0];
+    return "Anonymous";
   };
 
   return (

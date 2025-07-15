@@ -14,9 +14,7 @@ async function checkUser(email: string) {
         name: true,
         hashedPassword: true,
         emailVerified: true,
-        image: true,
-        createdAt: true,
-        updatedAt: true
+        image: true
       }
     });
 
@@ -32,9 +30,7 @@ async function checkUser(email: string) {
       hasPassword: !!user.hashedPassword,
       passwordLength: user.hashedPassword?.length || 0,
       emailVerified: user.emailVerified,
-      image: user.image,
-      createdAt: (user as any).createdAt || 'Not available',
-      updatedAt: (user as any).updatedAt || 'Not available'
+      image: user.image
     };
 
     console.log('✅ User found:');

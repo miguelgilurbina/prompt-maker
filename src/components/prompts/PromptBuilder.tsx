@@ -26,12 +26,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Plus,
   Save,
-  X,
   Eye,
   EyeOff,
-  Trash2,
   Clock,
   AlertCircle,
   Check,
@@ -52,6 +49,14 @@ interface PromptBuilderProps {
   onCancel: () => void;
   /** Loading state for save operations */
   isSaving?: boolean;
+}
+
+interface EditorState {
+  currentPrompt: PromptFormData;
+  isDirty: boolean;
+  validationErrors: Record<string, string>;
+  previewMode: boolean;
+  lastSaved?: Date;
 }
 
 // Predefined categories
@@ -81,12 +86,12 @@ export function PromptBuilder({
   });
 
   // State management
-  const [editorState, setEditorState] = useState({
+  const [editorState, setEditorState] = useState<EditorState>({
     currentPrompt: initializePrompt(),
     isDirty: false,
     validationErrors: {},
     previewMode: false,
-    lastSaved: undefined,
+    // lastSaved is optional and will be undefined initially
   });
 
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");

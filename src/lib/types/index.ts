@@ -8,7 +8,7 @@ export type {
   Comment,
   Prompt as DatabasePrompt,  // Renamed to avoid conflicts
   PromptCategory,
-  PromptVariable,
+  // PromptVariable,
   Session,
   UIPrompt,
   User,
