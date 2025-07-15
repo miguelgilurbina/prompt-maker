@@ -1,77 +1,79 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { signIn } from "next-auth/react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface FormData {
-  email: string
-  password: string
+  email: string;
+  password: string;
 }
 
 export default function SignIn() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
-  })
-  const router = useRouter()
+  });
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
-    
-    const { email, password } = formData
-    
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    const { email, password } = formData;
+
     if (!email || !password) {
-      setError("Email and password are required")
-      setIsLoading(false)
-      return
+      setError("Email and password are required");
+      setIsLoading(false);
+      return;
     }
-    
-    console.log('Attempting sign in with email:', email)
+
+    console.log("Attempting sign in with email:", email);
 
     try {
       const result = await signIn("credentials", {
         redirect: false,
         email,
         password,
-        callbackUrl: "/"
-      })
+        callbackUrl: "/",
+      });
 
-      console.log('Sign in result:', result)
+      console.log("Sign in result:", result);
 
       if (result?.error) {
-        console.error('Sign in error:', result.error)
-        setError(result.error === 'CredentialsSignin' 
-          ? 'Invalid email or password. Please try again.' 
-          : result.error)
+        console.error("Sign in error:", result.error);
+        setError(
+          result.error === "CredentialsSignin"
+            ? "Invalid email or password. Please try again."
+            : result.error
+        );
       } else if (result?.url) {
-        console.log('Sign in successful, redirecting to:', result.url)
+        console.log("Sign in successful, redirecting to:", result.url);
         // Use replace instead of push to prevent going back to sign-in page
-        window.location.href = result.url
+        window.location.href = result.url;
       } else {
-        console.error('Unexpected sign in result:', result)
-        setError('An unexpected error occurred. Please try again.')
+        console.error("Unexpected sign in result:", result);
+        setError("An unexpected error occurred. Please try again.");
       }
     } catch (err) {
-      console.error('Sign in error:', err)
-      setError('An error occurred during sign in. Please try again.')
+      console.error("Sign in error:", err);
+      setError("An error occurred during sign in. Please try again.");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
@@ -85,7 +87,10 @@ export default function SignIn() {
           </p>
         </div>
         {error && (
-          <div className="bg-destructive/15 text-destructive p-3 rounded-md text-sm" role="alert">
+          <div
+            className="bg-destructive/15 text-destructive p-3 rounded-md text-sm"
+            role="alert"
+          >
             {error}
           </div>
         )}
@@ -108,9 +113,9 @@ export default function SignIn() {
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <a 
-                  href="/auth/forgot-password" 
-                  className="text-sm font-medium text-primary hover:underline"
+                <a
+                  href="/auth/forgot-password"
+                  className="text-sm font-medium  hover:underline"
                 >
                   Forgot password?
                 </a>
@@ -130,17 +135,13 @@ export default function SignIn() {
           </div>
 
           <div>
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign in"}
             </Button>
-            <p className="px-8 text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{' '}
-              <a 
-                href="/auth/signup" 
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <a
+                href="/auth/signup"
                 className="hover:text-primary underline underline-offset-4"
               >
                 Sign up
@@ -150,5 +151,5 @@ export default function SignIn() {
         </form>
       </div>
     </div>
-  )
+  );
 }
