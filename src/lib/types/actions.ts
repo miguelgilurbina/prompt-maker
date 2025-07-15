@@ -1,4 +1,4 @@
-import type { Prompt, PromptVariable, PromptCategory } from './database.types';
+import type { Prompt, PromptCategory } from './database.types';
 
 /**
  * Editor Actions
@@ -6,9 +6,9 @@ import type { Prompt, PromptVariable, PromptCategory } from './database.types';
  */
 export type EditorAction = 
   | { type: 'UPDATE_CONTENT'; payload: string }
-  | { type: 'ADD_VARIABLE'; payload: PromptVariable }
-  | { type: 'REMOVE_VARIABLE'; payload: string }
-  | { type: 'UPDATE_VARIABLE'; payload: { id: string; variable: Partial<PromptVariable> } }
+  // | { type: 'ADD_VARIABLE'; payload: PromptVariable }
+  // | { type: 'REMOVE_VARIABLE'; payload: string }
+  // | { type: 'UPDATE_VARIABLE'; payload: { id: string; variable: Partial<PromptVariable> } }
   | { type: 'SET_PREVIEW'; payload: boolean }
   | { type: 'SAVE_PROMPT' }
   | { type: 'RESET_EDITOR' };
@@ -40,20 +40,20 @@ export const createAction = {
     payload: content,
   }),
   
-  addVariable: (variable: PromptVariable): EditorAction => ({
-    type: 'ADD_VARIABLE',
-    payload: variable,
-  }),
+  // addVariable: (variable: PromptVariable): EditorAction => ({
+  //   type: 'ADD_VARIABLE',
+  //   payload: variable,
+  // }),
   
-  removeVariable: (id: string): EditorAction => ({
-    type: 'REMOVE_VARIABLE',
-    payload: id,
-  }),
+  // removeVariable: (id: string): EditorAction => ({
+  //   type: 'REMOVE_VARIABLE',
+  //   payload: id,
+  // }),
   
-  updateVariable: (id: string, variable: Partial<PromptVariable>): EditorAction => ({
-    type: 'UPDATE_VARIABLE',
-    payload: { id, variable },
-  }),
+  // updateVariable: (id: string, variable: Partial<PromptVariable>): EditorAction => ({
+  //   type: 'UPDATE_VARIABLE',
+  //   payload: { id, variable },
+  // }),
   
   setPreview: (isPreview: boolean): EditorAction => ({
     type: 'SET_PREVIEW',

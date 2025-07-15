@@ -142,7 +142,7 @@ export class ContentModerator {
       prompt.title,
       prompt.description,
       prompt.content,
-      prompt.tags?.join(' ')
+      // prompt.tags?.join(' ')
     ].filter(Boolean).join('\n');
 
     return this.moderateContent(contentToCheck);

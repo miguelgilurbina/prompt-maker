@@ -1,61 +1,62 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface FormData {
-  name: string
-  email: string
-  password: string
+  name: string;
+  email: string;
+  password: string;
 }
 
 export default function SignUp() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
     password: "",
-  })
-  const router = useRouter()
+  });
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.message || "Something went wrong")
+        const error = await res.json();
+        throw new Error(error.message || "Something went wrong");
       }
 
       // Redirect to sign-in page with success state
-      router.push("/auth/signin?registered=true")
-    } catch (err: any) {
-      console.error('Sign up error:', err)
-      setError(err.message || "An error occurred during sign up. Please try again.")
+      router.push("/auth/signin?registered=true");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
@@ -69,7 +70,10 @@ export default function SignUp() {
           </p>
         </div>
         {error && (
-          <div className="bg-destructive/15 text-destructive p-3 rounded-md text-sm" role="alert">
+          <div
+            className="bg-destructive/15 text-destructive p-3 rounded-md text-sm"
+            role="alert"
+          >
             {error}
           </div>
         )}
@@ -119,17 +123,13 @@ export default function SignUp() {
             </div>
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Creating account...' : 'Sign up'}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Creating account..." : "Sign up"}
           </Button>
           <p className="px-8 text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <a 
-              href="/auth/signin" 
+            Already have an account?{" "}
+            <a
+              href="/auth/signin"
               className="hover:text-primary underline underline-offset-4"
             >
               Sign in
@@ -138,5 +138,5 @@ export default function SignUp() {
         </form>
       </div>
     </div>
-  )
+  );
 }

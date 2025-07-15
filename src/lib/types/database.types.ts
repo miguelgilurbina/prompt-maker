@@ -75,13 +75,13 @@ export interface Prompt extends BaseEntity {
   category: PromptCategory;
   isPublic: boolean;
   authorId: string | null;
-  author: User | null;
-  views: number;
-  likes: number;
+  // author: User | null;
+  // views: number;
+  // likes: number;
   // Relationships
   author: User | null;
-  comments: Comment[];
-  votes: Vote[];
+  // comments: Comment[];
+  // votes: Vote[];
 }
 
 // Comment type

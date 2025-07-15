@@ -20,7 +20,7 @@ import { PromptPreviewModal } from "./PromptPreviewModal";
 
 // Types
 import type { UIPrompt, PromptCategory } from "@/lib/types/database.types";
-import type { User, Vote as PrismaVote } from "@prisma/client";
+// import type { User, Vote as PrismaVote } from "@prisma/client";
 
 // Define valid prompt categories for the UI
 const VALID_CATEGORIES = [
@@ -87,10 +87,10 @@ const DEBOUNCE_DELAY = 500;
 type TabType = "public" | "my-prompts";
 
 // Vote response from API
-interface VoteResponse {
-  votes: PrismaVote[];
-  voteCount: number;
-}
+// interface VoteResponse {
+//   votes: PrismaVote[];
+//   voteCount: number;
+// }
 
 /**
  * ExplorePanel Component
@@ -146,83 +146,83 @@ export function ExplorePanel() {
         const comments = apiPrompt.comments || [];
         const voteCount = apiPrompt.voteCount || votes.length || 0;
         const commentCount = apiPrompt.commentCount || comments.length || 0;
-        const views = apiPrompt.views || 0;
+        // const views = apiPrompt.views || 0;
 
         // Get a valid category
         const category = getValidCategory(apiPrompt.category) as PromptCategory;
 
         // Helper function to safely get author info from comment
-        const getCommentAuthorInfo = (comment: unknown) => {
-          if (typeof comment !== "object" || comment === null) {
-            return {
-              name: "Anonymous",
-              image: null,
-              id: "",
-              author: null,
-            };
-          }
+        // const getCommentAuthorInfo = (comment: unknown) => {
+        //   if (typeof comment !== "object" || comment === null) {
+        //     return {
+        //       name: "Anonymous",
+        //       image: null,
+        //       id: "",
+        //       author: null,
+        //     };
+        //   }
 
-          return {
-            name:
-              hasProperty(comment, "author") &&
-              comment.author &&
-              typeof comment.author === "object" &&
-              hasProperty(comment.author, "name")
-                ? String(comment.author.name) || "Anonymous"
-                : hasProperty(comment, "authorName")
-                ? String(comment.authorName) || "Anonymous"
-                : "Anonymous",
-            image:
-              hasProperty(comment, "author") &&
-              comment.author &&
-              typeof comment.author === "object" &&
-              hasProperty(comment.author, "image")
-                ? (comment.author.image as string | null)
-                : hasProperty(comment, "authorImage")
-                ? (comment.authorImage as string | null)
-                : null,
-            id: hasProperty(comment, "authorId")
-              ? String(comment.authorId)
-              : hasProperty(comment, "author") &&
-                comment.author &&
-                typeof comment.author === "object" &&
-                hasProperty(comment.author, "id")
-              ? String(comment.author.id)
-              : "",
-            author: hasProperty(comment, "author")
-              ? (comment.author as User | null)
-              : null,
-          };
-        };
+        //   return {
+        //     name:
+        //       hasProperty(comment, "author") &&
+        //       comment.author &&
+        //       typeof comment.author === "object" &&
+        //       hasProperty(comment.author, "name")
+        //         ? String(comment.author.name) || "Anonymous"
+        //         : hasProperty(comment, "authorName")
+        //         ? String(comment.authorName) || "Anonymous"
+        //         : "Anonymous",
+        //     image:
+        //       hasProperty(comment, "author") &&
+        //       comment.author &&
+        //       typeof comment.author === "object" &&
+        //       hasProperty(comment.author, "image")
+        //         ? (comment.author.image as string | null)
+        //         : hasProperty(comment, "authorImage")
+        //         ? (comment.authorImage as string | null)
+        //         : null,
+        //     id: hasProperty(comment, "authorId")
+        //       ? String(comment.authorId)
+        //       : hasProperty(comment, "author") &&
+        //         comment.author &&
+        //         typeof comment.author === "object" &&
+        //         hasProperty(comment.author, "id")
+        //       ? String(comment.author.id)
+        //       : "",
+        //     author: hasProperty(comment, "author")
+        //       ? (comment.author as User | null)
+        //       : null,
+        //   };
+        // };
 
         // Helper function to safely get vote info
-        const getVoteInfo = (vote: unknown) => {
-          if (typeof vote !== "object" || vote === null) {
-            return {
-              id: `temp-${Math.random().toString(36).substr(2, 9)}`,
-              userId: "",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              user: null,
-            };
-          }
+        // const getVoteInfo = (vote: unknown) => {
+        //   if (typeof vote !== "object" || vote === null) {
+        //     return {
+        //       id: `temp-${Math.random().toString(36).substr(2, 9)}`,
+        //       userId: "",
+        //       createdAt: new Date(),
+        //       updatedAt: new Date(),
+        //       user: null,
+        //     };
+        //   }
 
-          const createdAt = hasProperty(vote, "createdAt")
-            ? new Date(String(vote.createdAt))
-            : new Date();
+        //   const createdAt = hasProperty(vote, "createdAt")
+        //     ? new Date(String(vote.createdAt))
+        //     : new Date();
 
-          return {
-            id: hasProperty(vote, "id")
-              ? String(vote.id)
-              : `temp-${Math.random().toString(36).substr(2, 9)}`,
-            userId: hasProperty(vote, "userId") ? String(vote.userId) : "",
-            createdAt,
-            updatedAt: hasProperty(vote, "updatedAt")
-              ? new Date(String(vote.updatedAt))
-              : createdAt,
-            user: hasProperty(vote, "user") ? (vote.user as User | null) : null,
-          };
-        };
+        //   return {
+        //     id: hasProperty(vote, "id")
+        //       ? String(vote.id)
+        //       : `temp-${Math.random().toString(36).substr(2, 9)}`,
+        //     userId: hasProperty(vote, "userId") ? String(vote.userId) : "",
+        //     createdAt,
+        //     updatedAt: hasProperty(vote, "updatedAt")
+        //       ? new Date(String(vote.updatedAt))
+        //       : createdAt,
+        //     user: hasProperty(vote, "user") ? (vote.user as User | null) : null,
+        //   };
+        // };
 
         // Create UIPrompt with proper type safety
         const uiPrompt: UIPrompt = {
@@ -249,48 +249,48 @@ export function ExplorePanel() {
             }) || false,
           voteCount,
           commentCount,
-          views,
+          // views,
           // Map comments with proper type casting
-          comments: (Array.isArray(comments) ? comments : []).map((comment) => {
-            const authorInfo = getCommentAuthorInfo(comment);
-            const createdAt = hasProperty(comment, "createdAt")
-              ? new Date(String(comment.createdAt))
-              : new Date();
-            const updatedAt = hasProperty(comment, "updatedAt")
-              ? new Date(String(comment.updatedAt))
-              : createdAt;
+          // comments: (Array.isArray(comments) ? comments : []).map((comment) => {
+          //   const authorInfo = getCommentAuthorInfo(comment);
+          //   const createdAt = hasProperty(comment, "createdAt")
+          //     ? new Date(String(comment.createdAt))
+          //     : new Date();
+          //   const updatedAt = hasProperty(comment, "updatedAt")
+          //     ? new Date(String(comment.updatedAt))
+          //     : createdAt;
 
-            return {
-              id: hasProperty(comment, "id")
-                ? String(comment.id)
-                : `temp-${Math.random().toString(36).substr(2, 9)}`,
-              content: hasProperty(comment, "content")
-                ? String(comment.content)
-                : "",
-              authorId: authorInfo.id,
-              authorName: authorInfo.name,
-              authorImage: authorInfo.image,
-              promptId: apiPrompt.id,
-              createdAt,
-              updatedAt,
-              author: authorInfo.author,
-              prompt: { id: apiPrompt.id },
-            };
-          }) as any,
-          // Map votes with proper type casting
-          votes: (Array.isArray(votes) ? votes : []).map((vote) => {
-            const voteInfo = getVoteInfo(vote);
+          //   return {
+          //     id: hasProperty(comment, "id")
+          //       ? String(comment.id)
+          //       : `temp-${Math.random().toString(36).substr(2, 9)}`,
+          //     content: hasProperty(comment, "content")
+          //       ? String(comment.content)
+          //       : "",
+          //     authorId: authorInfo.id,
+          //     authorName: authorInfo.name,
+          //     authorImage: authorInfo.image,
+          //     promptId: apiPrompt.id,
+          //     createdAt,
+          //     updatedAt,
+          //     author: authorInfo.author,
+          //     prompt: { id: apiPrompt.id },
+          //   };
+          // }) as any,
+          // // Map votes with proper type casting
+          // votes: (Array.isArray(votes) ? votes : []).map((vote) => {
+          //   const voteInfo = getVoteInfo(vote);
 
-            return {
-              id: voteInfo.id,
-              userId: voteInfo.userId,
-              promptId: apiPrompt.id,
-              createdAt: voteInfo.createdAt,
-              updatedAt: voteInfo.updatedAt,
-              user: voteInfo.user,
-              prompt: { id: apiPrompt.id },
-            };
-          }) as any,
+          //   return {
+          //     id: voteInfo.id,
+          //     userId: voteInfo.userId,
+          //     promptId: apiPrompt.id,
+          //     createdAt: voteInfo.createdAt,
+          //     updatedAt: voteInfo.updatedAt,
+          //     user: voteInfo.user,
+          //     prompt: { id: apiPrompt.id },
+          //   };
+          // }) as any,
           authorInfo: author
             ? {
                 id: author.id,
@@ -325,12 +325,12 @@ export function ExplorePanel() {
           createdAt: new Date(),
           updatedAt: new Date(),
           isOwner: false,
-          hasVoted: false,
-          voteCount: 0,
-          commentCount: 0,
-          views: 0,
-          comments: [],
-          votes: [],
+          // hasVoted: false,
+          // voteCount: 0,
+          // commentCount: 0,
+          // views: 0,
+          // comments: [],
+          // votes: [],
           authorInfo: null,
         };
       }
@@ -471,20 +471,18 @@ export function ExplorePanel() {
           throw new Error(error.error || "Failed to vote");
         }
 
-        const data: VoteResponse = await response.json();
-
-        // Update the local state with the new vote
-        setPrompts((prevPrompts) =>
-          prevPrompts.map((p) =>
-            p.id === promptId
-              ? {
-                  ...p,
-                  hasVoted: true,
-                  voteCount: data.voteCount,
-                }
-              : p
-          )
-        );
+        // // Update the local state with the new vote
+        // setPrompts((prevPrompts) =>
+        //   prevPrompts.map((p) =>
+        //     p.id === promptId
+        //       ? {
+        //           ...p,
+        //           // hasVoted: true,
+        //           // voteCount: data.voteCount,
+        //         }
+        //       : p
+        //   )
+        // );
 
         toast.success("Vote recorded successfully!");
       } catch (error) {
@@ -641,16 +639,16 @@ export function ExplorePanel() {
                 <PromptCard
                   key={prompt.id}
                   prompt={prompt}
-                  onView={(prompt) => {
-                    setSelectedPrompt(prompt);
-                    setIsPreviewOpen(true);
-                  }}
-                  onVote={handleVote}
+                  // onView={(prompt) => {
+                  //   setSelectedPrompt(prompt);
+                  //   setIsPreviewOpen(true);
+                  // }}
+                  // onVote={handleVote}
                   onDelete={
                     activeTab === "my-prompts" ? handleDeletePrompt : undefined
                   }
                   isOwner={activeTab === "my-prompts"}
-                  hasVoted={prompt.hasVoted}
+                  // hasVoted={prompt.hasVoted}
                 />
               ))}
             </div>

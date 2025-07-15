@@ -13,11 +13,13 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Database connection error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
     return NextResponse.json(
       { 
         status: "error",
         error: "Database connection failed",
-        details: process.env.NODE_ENV === 'development' ? error.message : {}
+        details: process.env.NODE_ENV === 'development' ? errorMessage : {}
       },
       { status: 500 }
     )
