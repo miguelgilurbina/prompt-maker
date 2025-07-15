@@ -354,6 +354,8 @@ export function ExplorePanel() {
         let url: string;
         if (activeTab === "my-prompts" && session) {
           url = `/api/prompts/me`;
+        } else if (activeTab === "public") {
+          url = `/api/prompts/public`;
         } else {
           url = `/api/prompts`;
         }
