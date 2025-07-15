@@ -175,3 +175,68 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getAuthenticatedSession();
+    const { searchParams } = new URL(request.url);
+    const promptId = searchParams.get('id');
+
+    if (!promptId) {
+      return NextResponse.json(
+        { error: 'Prompt ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // First, verify the prompt exists and belongs to the user
+    const prompt = await prisma.prompt.findUnique({
+      where: { id: promptId },
+      select: { authorId: true }
+    });
+
+    if (!prompt) {
+      return NextResponse.json(
+        { error: 'Prompt not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify the prompt belongs to the current user
+    if (prompt.authorId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized to delete this prompt' },
+        { status: 403 }
+      );
+    }
+
+    // Delete the prompt and its related records in a transaction
+    await prisma.$transaction([
+      prisma.comment.deleteMany({ where: { promptId } }),
+      prisma.vote.deleteMany({ where: { promptId } }),
+      prisma.prompt.delete({ where: { id: promptId } })
+    ]);
+
+    return NextResponse.json(
+      { success: true, message: 'Prompt deleted successfully' },
+      { status: 200 }
+    );
+
+  } catch (error) {
+    console.error('Error deleting prompt:', error);
+    
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return NextResponse.json(
+          { error: 'You must be logged in to delete a prompt' },
+          { status: 401 }
+        );
+      }
+    }
+    
+    return NextResponse.json(
+      { error: 'Failed to delete prompt' },
+      { status: 500 }
+    );
+  }
+}

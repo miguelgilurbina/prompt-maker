@@ -3,15 +3,14 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { debounce } from "lodash";
 import { Search, Loader2, AlertCircle } from "lucide-react";
 
 // UI Components
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -20,16 +19,8 @@ import { PromptCard } from "./PromptCard";
 import { PromptPreviewModal } from "./PromptPreviewModal";
 
 // Types
-import type {
-  UIPrompt,
-  PromptVariable,
-  PromptCategory,
-} from "@/lib/types/database.types";
-import type {
-  User,
-  Vote as PrismaVote,
-  Comment as PrismaComment,
-} from "@prisma/client";
+import type { UIPrompt, PromptCategory } from "@/lib/types/database.types";
+import type { User, Vote as PrismaVote } from "@prisma/client";
 
 // Define valid prompt categories for the UI
 const VALID_CATEGORIES = [
@@ -41,20 +32,6 @@ const VALID_CATEGORIES = [
   "other",
 ] as const;
 type ValidCategory = (typeof VALID_CATEGORIES)[number];
-
-// Extended types to match the component's needs
-type UIComment = Omit<PrismaComment, "author" | "prompt"> & {
-  authorName: string;
-  authorImage: string | null;
-  author: User | null;
-  prompt: { id: string } | null;
-};
-
-type UIVote = Omit<PrismaVote, "user" | "prompt"> & {
-  user: User | null;
-  prompt: { id: string } | null;
-  updatedAt: Date;
-};
 
 // Type guard to check if an object has a property
 const hasProperty = <T extends object, K extends PropertyKey>(
@@ -132,7 +109,7 @@ export function ExplorePanel() {
   const [activeTab, setActiveTab] = useState<TabType>("public");
   const [selectedPrompt, setSelectedPrompt] = useState<UIPrompt | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
-  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
+
   const [error, setError] = useState<string | null>(null);
 
   // Ref to track if component is mounted
@@ -254,37 +231,13 @@ export function ExplorePanel() {
           description: apiPrompt.description || null,
           content: apiPrompt.content,
           category,
-          tags: Array.isArray(apiPrompt.tags) ? apiPrompt.tags : [],
+          // tags: Array.isArray(apiPrompt.tags) ? apiPrompt.tags : [], // Removed as not part of UIPrompt type
           isPublic: !!apiPrompt.isPublic,
           authorId: apiPrompt.authorId,
-          authorName: author?.name || "Anonymous",
+          // authorName: author?.name || "Anonymous", // Removed as not part of UIPrompt type
           createdAt: new Date(apiPrompt.createdAt || Date.now()),
           updatedAt: new Date(apiPrompt.updatedAt || Date.now()),
-          // Map variables to ensure they match the expected type
-          variables: (Array.isArray(apiPrompt.variables)
-            ? apiPrompt.variables
-            : []
-          ).map(
-            (v) =>
-              ({
-                id: hasProperty(v, "id")
-                  ? String(v.id)
-                  : `var-${Math.random().toString(36).substr(2, 9)}`,
-                name: hasProperty(v, "name") ? String(v.name) : "variable",
-                type: (hasProperty(v, "type") &&
-                ["number", "text", "select", "multiline"].includes(
-                  String(v.type)
-                )
-                  ? v.type
-                  : "text") as "number" | "text" | "select" | "multiline",
-                required: hasProperty(v, "required")
-                  ? Boolean(v.required)
-                  : false,
-                defaultValue: hasProperty(v, "defaultValue")
-                  ? String(v.defaultValue || "")
-                  : "",
-              } as PromptVariable)
-          ),
+          // variables: (Array.isArray(apiPrompt.variables) ? apiPrompt.variables : []).map(...), // Removed as not part of UIPrompt type
           isOwner: session?.user?.id === apiPrompt.authorId,
           hasVoted:
             votes.some((vote) => {
@@ -297,7 +250,7 @@ export function ExplorePanel() {
           voteCount,
           commentCount,
           views,
-          // Map comments to match UIComment type
+          // Map comments with proper type casting
           comments: (Array.isArray(comments) ? comments : []).map((comment) => {
             const authorInfo = getCommentAuthorInfo(comment);
             const createdAt = hasProperty(comment, "createdAt")
@@ -322,9 +275,9 @@ export function ExplorePanel() {
               updatedAt,
               author: authorInfo.author,
               prompt: { id: apiPrompt.id },
-            } as UIComment;
-          }),
-          // Map votes to match UIVote type
+            };
+          }) as any,
+          // Map votes with proper type casting
           votes: (Array.isArray(votes) ? votes : []).map((vote) => {
             const voteInfo = getVoteInfo(vote);
 
@@ -336,8 +289,8 @@ export function ExplorePanel() {
               updatedAt: voteInfo.updatedAt,
               user: voteInfo.user,
               prompt: { id: apiPrompt.id },
-            } as UIVote;
-          }),
+            };
+          }) as any,
           authorInfo: author
             ? {
                 id: author.id,
@@ -366,13 +319,11 @@ export function ExplorePanel() {
           description: "There was an error loading this prompt",
           content: "",
           category: "general" as PromptCategory,
-          tags: [],
           isPublic: false,
           authorId: "",
-          authorName: "System",
+          // authorName: "System", // Removed as not part of UIPrompt type
           createdAt: new Date(),
           updatedAt: new Date(),
-          variables: [],
           isOwner: false,
           hasVoted: false,
           voteCount: 0,
@@ -490,7 +441,6 @@ export function ExplorePanel() {
         if (isMountedRef.current) {
           setIsLoading(false);
           setIsLoadingMore(false);
-          setIsInitialLoad(false);
         }
       }
     },
@@ -501,7 +451,7 @@ export function ExplorePanel() {
   const handleVote = useCallback(
     async (promptId: string) => {
       if (!session) {
-        toast.info("Please sign in to vote");
+        toast.error("You must be signed in to vote");
         return;
       }
 
@@ -511,53 +461,77 @@ export function ExplorePanel() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ userId: session.user.id }),
+          body: JSON.stringify({}),
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => null);
-          throw new Error(errorData?.message || "Failed to submit vote");
+          const error = await response.json();
+          throw new Error(error.error || "Failed to vote");
         }
 
         const data: VoteResponse = await response.json();
 
-        // Update prompts with new vote data
+        // Update the local state with the new vote
         setPrompts((prevPrompts) =>
           prevPrompts.map((p) =>
             p.id === promptId
               ? {
                   ...p,
-                  voteCount: data.voteCount || data.votes.length,
-                  hasVoted: data.votes.some(
-                    (v: PrismaVote) => v.userId === session.user.id
-                  ),
+                  hasVoted: true,
+                  voteCount: data.voteCount,
                 }
               : p
           )
         );
 
-        // Update selected prompt if it's being viewed
-        setSelectedPrompt((prev) =>
-          prev?.id === promptId
-            ? {
-                ...prev,
-                voteCount: data.voteCount || data.votes.length,
-                hasVoted: data.votes.some(
-                  (v: PrismaVote) => v.userId === session.user.id
-                ),
-              }
-            : prev
-        );
-
-        toast.success("Vote registered!");
+        toast.success("Vote recorded successfully!");
       } catch (error) {
-        console.error("Error voting on prompt:", error);
-        const errorMessage =
-          error instanceof Error ? error.message : "Failed to register vote";
-        toast.error(errorMessage);
+        console.error("Error voting:", error);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "An error occurred while voting"
+        );
       }
     },
     [session]
+  );
+
+  // Handle prompt deletion
+  const handleDeletePrompt = useCallback(
+    async (promptId: string) => {
+      try {
+        const response = await fetch(`/api/prompts?id=${promptId}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Failed to delete prompt");
+        }
+
+        // Remove the deleted prompt from the local state
+        setPrompts((prevPrompts) =>
+          prevPrompts.filter((p) => p.id !== promptId)
+        );
+
+        // If we're on the last page with one item, go back a page
+        if (prompts.length === 1 && page > 1) {
+          setPage((prevPage) => prevPage - 1);
+        }
+
+        toast.success("Prompt deleted successfully");
+      } catch (error) {
+        console.error("Error deleting prompt:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Failed to delete prompt"
+        );
+      }
+    },
+    [page, prompts.length, setPage, setPrompts]
   );
 
   // Handle search input change
@@ -569,224 +543,172 @@ export function ExplorePanel() {
     [debouncedSearch]
   );
 
-  // Handle tab change
-  const handleTabChange = useCallback((value: string) => {
-    setActiveTab(value as TabType);
-    setPage(1);
-    setPrompts([]);
-    setError(null);
-  }, []);
-
-  // Handle load more
-  const handleLoadMore = useCallback(() => {
-    setPage((prev) => prev + 1);
-  }, []);
-
-  // Handle prompt view
-  const handleViewPrompt = useCallback((prompt: UIPrompt) => {
-    setSelectedPrompt(prompt);
-    setIsPreviewOpen(true);
-  }, []);
-
-  // Handle preview close
-  const handleClosePreview = useCallback(() => {
-    setIsPreviewOpen(false);
-    // Delay clearing selected prompt to avoid UI flash
-    setTimeout(() => setSelectedPrompt(null), 300);
-  }, []);
-
-  // Convert UIPrompt to the format expected by PromptPreviewModal
-  const convertUIPromptForModal = useCallback(
-    (uiPrompt: UIPrompt): UIPrompt => {
-      // Return the UIPrompt as-is since PromptPreviewModal expects UIPrompt type
-      // Ensure all required UIPrompt properties are present
-      return {
-        ...uiPrompt,
-        // Ensure optional UI properties have default values if needed
-        isOwner: uiPrompt.isOwner ?? false,
-        hasVoted: uiPrompt.hasVoted ?? false,
-        voteCount: uiPrompt.voteCount ?? 0,
-        commentCount: uiPrompt.commentCount ?? 0,
-        authorInfo: uiPrompt.authorInfo ?? null,
-      };
-    },
-    []
-  );
-
-  // Effects
+  // Fetch prompts on mount and when dependencies change
   useEffect(() => {
     fetchPrompts();
   }, [fetchPrompts]);
 
+  // Handle page changes
   useEffect(() => {
-    // Reset when tab or search changes
-    if (!isInitialLoad) {
-      setPage(1);
-      setPrompts([]);
+    if (page > 1) {
+      fetchPrompts();
     }
-  }, [searchQuery, activeTab, isInitialLoad]);
+  }, [page, fetchPrompts]);
+
+  // Reset page when tab or search changes
+  useEffect(() => {
+    if (page > 1) {
+      setPage(1);
+    }
+  }, [activeTab, searchQuery, page]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
-      debouncedSearch.cancel();
     };
-  }, [debouncedSearch]);
+  }, []);
 
-  // Render loading state
-  if (isInitialLoad && isLoading) {
+  // Loading state
+  if (isLoading && prompts.length === 0) {
     return (
       <Card className="w-full max-w-4xl mx-auto">
-        <CardContent className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <CardContent className="p-8">
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <div className="flex flex-col space-y-4">
-          <div className="flex items-center justify-between">
-            <CardTitle>Explore Prompts</CardTitle>
-            {session && (
-              <Link href="/prompts/new">
-                <Button>Create Prompt</Button>
-              </Link>
-            )}
-          </div>
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Main Card */}
+      <Card className="w-full max-w-4xl mx-auto">
+        {/* Title */}
+        <CardHeader className="pb-2">
+          <h1 className="text-2xl font-bold tracking-tight">Explore Prompts</h1>
+          <p className="text-sm text-muted-foreground">
+            Browse and discover prompts created by the community
+          </p>
+        </CardHeader>
 
-          {/* Search bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Search prompts..."
-              onChange={handleSearchChange}
-              className="pl-10"
-              aria-label="Search prompts"
-            />
-          </div>
-
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
+        {/* Tabs */}
+        <div className="px-6 pb-2">
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as TabType)}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="public">Public</TabsTrigger>
+              <TabsTrigger value="public">Public Prompts</TabsTrigger>
               <TabsTrigger value="my-prompts" disabled={!session}>
                 My Prompts
               </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
-      </CardHeader>
 
-      <CardContent className="space-y-6">
-        {/* Error state */}
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        {/* Search Bar */}
+        <div className="px-6 pb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search prompts..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="pl-9"
+            />
+          </div>
+        </div>
 
-        {/* Sin sesión en tab "Mis Prompts" */}
-        {!session && activeTab === "my-prompts" ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center border rounded-lg p-6 bg-muted/5">
-            <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-              <Search className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-medium mb-2">
-              Sign in to view your prompts
-            </h3>
-            <p className="text-muted-foreground mb-4 max-w-md">
-              Sign in to access your personal prompts and manage them securely.
-            </p>
-            <Button asChild>
-              <Link href="/auth/signin">Sign in</Link>
-            </Button>
-          </div>
-        ) : isLoading && prompts.length === 0 ? (
-          // Loading inicial
-          <div className="flex items-center justify-center h-40">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : prompts.length > 0 ? (
-          // Lista de prompts
-          <div className="space-y-6">
-            <div className="grid gap-6">
+        <CardContent>
+          {/* Error State */}
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Prompts Grid */}
+          {prompts.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {prompts.map((prompt) => (
-                <div
+                <PromptCard
                   key={prompt.id}
-                  className="hover:scale-[1.01] transition-transform duration-200"
-                >
-                  <PromptCard
-                    prompt={prompt}
-                    onView={handleViewPrompt}
-                    onVote={handleVote}
-                    isOwner={prompt.isOwner}
-                    hasVoted={prompt.hasVoted}
-                  />
-                </div>
+                  prompt={prompt}
+                  onView={(prompt) => {
+                    setSelectedPrompt(prompt);
+                    setIsPreviewOpen(true);
+                  }}
+                  onVote={handleVote}
+                  onDelete={
+                    activeTab === "my-prompts" ? handleDeletePrompt : undefined
+                  }
+                  isOwner={activeTab === "my-prompts"}
+                  hasVoted={prompt.hasVoted}
+                />
               ))}
             </div>
-
-            {/* Load more button */}
-            {page < totalPages && (
-              <div className="flex justify-center mt-6">
-                <Button
-                  onClick={handleLoadMore}
-                  disabled={isLoadingMore}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  {isLoadingMore ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    "Load more"
-                  )}
-                </Button>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-muted-foreground">
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading prompts...
+                  </div>
+                ) : activeTab === "my-prompts" && !session ? (
+                  "Please sign in to view your prompts"
+                ) : searchQuery ? (
+                  `No prompts found for "${searchQuery}"`
+                ) : (
+                  "No prompts available"
+                )}
               </div>
-            )}
-          </div>
-        ) : (
-          // Estado vacío
-          <div className="text-center py-16 space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-              <Search className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium">
-              {activeTab === "public"
-                ? "No se encontraron prompts públicos"
-                : "No has creado ningún prompt aún"}
-            </h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              {activeTab === "public"
-                ? "Sé el primero en compartir un prompt con la comunidad."
-                : "Crea tu primer prompt para empezar a usarlo en tus proyectos."}
-            </p>
-          </div>
-        )}
-      </CardContent>
+          )}
+
+          {/* Load More Button */}
+          {prompts.length > 0 && page < totalPages && (
+            <div className="flex justify-center mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setPage(page + 1)}
+                disabled={isLoadingMore}
+              >
+                {isLoadingMore ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Load More"
+                )}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Preview Modal */}
       {selectedPrompt && (
         <PromptPreviewModal
-          prompt={convertUIPromptForModal(selectedPrompt)}
+          prompt={selectedPrompt}
           open={isPreviewOpen}
           onOpenChange={(open) => {
             if (!open) {
-              handleClosePreview();
+              setIsPreviewOpen(false);
+              // Delay clearing selected prompt to avoid UI flash
+              setTimeout(() => setSelectedPrompt(null), 300);
             }
           }}
           onVote={handleVote}
         />
       )}
-    </Card>
+    </div>
   );
 }
 

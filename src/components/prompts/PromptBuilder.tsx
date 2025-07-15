@@ -248,14 +248,15 @@ export function PromptBuilder({
             </CardTitle>
 
             <div className="flex items-center gap-2">
-              <Button
+              {/* Cancel Button */}
+              {/* <Button
                 variant="outline"
                 onClick={handleCancel}
                 disabled={isSaving}
               >
                 <X className="w-4 h-4 mr-2" />
                 Cancel
-              </Button>
+              </Button> */}
               <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving ? (
                   <>
