@@ -58,17 +58,6 @@ export interface VerificationToken {
   expires: Date;
 }
 
-// Prompt variable type
-export interface PromptVariable {
-  id: string;
-  name: string;
-  type: 'text' | 'number' | 'select' | 'multiline';
-  description?: string;
-  defaultValue?: string | number;
-  options?: string[];
-  required?: boolean;
-}
-
 // Prompt category type
 export type PromptCategory = 
   | 'creative-writing'
@@ -84,12 +73,11 @@ export interface Prompt extends BaseEntity {
   description: string | null;
   content: string;
   category: PromptCategory;
-  tags: string[];
   isPublic: boolean;
-  authorName: string | null;
-  variables: PromptVariable[] | null;
-  views: number;
   authorId: string | null;
+  author: User | null;
+  views: number;
+  likes: number;
   // Relationships
   author: User | null;
   comments: Comment[];

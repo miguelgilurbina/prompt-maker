@@ -3,12 +3,10 @@
 // These types are used for specific UI features and API interactions
 
 import type { 
-  PromptVariable as DBPromptVariable, 
   PromptCategory as DBPromptCategory,
   User
 } from './index';
 
-export type PromptVariable = DBPromptVariable;
 export type PromptCategory = DBPromptCategory;
 
 // Note: ApiResponse and PaginatedResponse are exported from index.ts to avoid conflicts
@@ -21,9 +19,7 @@ export interface PromptFormData {
   description: string | null;
   content: string;
   category: PromptCategory;
-  tags: string[];
   isPublic: boolean;
-  variables: PromptVariable[] | null;
   authorName?: string | null;
   authorId?: string | null;
 }
@@ -34,7 +30,6 @@ export interface PromptFormData {
 export interface PromptSearchParams {
   query?: string;
   category?: PromptCategory | 'all';
-  tags?: string[];
   authorId?: string;
   isPublic?: boolean;
   sortBy?: 'newest' | 'popular' | 'trending' | 'views';

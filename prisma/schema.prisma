@@ -93,7 +93,6 @@ model Prompt {
   tags        String[]
   isPublic    Boolean   @default(true)
   authorName  String?   // Para prompts anónimos
-  variables   Json?     // Guardaremos las variables como JSON
   views       Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

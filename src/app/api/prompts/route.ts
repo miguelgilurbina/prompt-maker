@@ -8,26 +8,13 @@ import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 // Define the schema for prompt creation
-const promptVariableSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  type: z.enum(['text', 'number', 'select', 'multiline']),
-  required: z.boolean().default(false),
-  defaultValue: z.string().optional(),
-  options: z.array(z.string()).optional(),
-  description: z.string().optional(),
-});
-
 const createPromptSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
   description: z.string().optional().nullable(),
   content: z.string().min(1, 'Content is required'),
   category: z.string().default('general'),
-  tags: z.array(z.string()).default([]),
   isPublic: z.boolean().default(false),
-  variables: z.array(promptVariableSchema).optional().nullable(),
 });
-
 
 // Helper function to get the authenticated user's session
 async function getAuthenticatedSession() {
@@ -135,20 +122,19 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const promptData = validation.data;
+    const { title, description, content, category, isPublic } = validation.data;
     
     // Create the prompt in the database
     const prompt = await prisma.prompt.create({
       data: {
-        title: promptData.title,
-        description: promptData.description,
-        content: promptData.content,
-        category: promptData.category,
-        tags: promptData.tags,
-        isPublic: promptData.isPublic,
-        variables: promptData.variables ? (promptData.variables as Prisma.InputJsonValue) : Prisma.DbNull,
-        authorId: session.user.id,
-        authorName: session.user.name || null,
+        title,
+        description,
+        content,
+        category,
+        isPublic,
+        author: {
+          connect: { id: session.user.id },
+        },
       },
       include: {
         author: {
@@ -185,6 +171,71 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(
       { error: 'Failed to create prompt' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getAuthenticatedSession();
+    const { searchParams } = new URL(request.url);
+    const promptId = searchParams.get('id');
+
+    if (!promptId) {
+      return NextResponse.json(
+        { error: 'Prompt ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // First, verify the prompt exists and belongs to the user
+    const prompt = await prisma.prompt.findUnique({
+      where: { id: promptId },
+      select: { authorId: true }
+    });
+
+    if (!prompt) {
+      return NextResponse.json(
+        { error: 'Prompt not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify the prompt belongs to the current user
+    if (prompt.authorId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized to delete this prompt' },
+        { status: 403 }
+      );
+    }
+
+    // Delete the prompt and its related records in a transaction
+    await prisma.$transaction([
+      prisma.comment.deleteMany({ where: { promptId } }),
+      prisma.vote.deleteMany({ where: { promptId } }),
+      prisma.prompt.delete({ where: { id: promptId } })
+    ]);
+
+    return NextResponse.json(
+      { success: true, message: 'Prompt deleted successfully' },
+      { status: 200 }
+    );
+
+  } catch (error) {
+    console.error('Error deleting prompt:', error);
+    
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return NextResponse.json(
+          { error: 'You must be logged in to delete a prompt' },
+          { status: 401 }
+        );
+      }
+    }
+    
+    return NextResponse.json(
+      { error: 'Failed to delete prompt' },
       { status: 500 }
     );
   }
