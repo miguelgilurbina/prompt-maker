@@ -449,54 +449,6 @@ export function ExplorePanel() {
     [page, searchQuery, activeTab, session, processPromptData]
   );
 
-  // Handle voting on a prompt
-  const handleVote = useCallback(
-    async (promptId: string) => {
-      if (!session) {
-        toast.error("You must be signed in to vote");
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/prompts/${promptId}/vote`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || "Failed to vote");
-        }
-
-        // // Update the local state with the new vote
-        // setPrompts((prevPrompts) =>
-        //   prevPrompts.map((p) =>
-        //     p.id === promptId
-        //       ? {
-        //           ...p,
-        //           // hasVoted: true,
-        //           // voteCount: data.voteCount,
-        //         }
-        //       : p
-        //   )
-        // );
-
-        toast.success("Vote recorded successfully!");
-      } catch (error) {
-        console.error("Error voting:", error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "An error occurred while voting"
-        );
-      }
-    },
-    [session]
-  );
-
   // Handle prompt deletion
   const handleDeletePrompt = useCallback(
     async (promptId: string) => {
@@ -542,6 +494,12 @@ export function ExplorePanel() {
     },
     [debouncedSearch]
   );
+
+  // Handle view prompt
+  const handleViewPrompt = useCallback((prompt: UIPrompt) => {
+    setSelectedPrompt(prompt);
+    setIsPreviewOpen(true);
+  }, []);
 
   // Fetch prompts on mount and when dependencies change
   useEffect(() => {
@@ -639,16 +597,12 @@ export function ExplorePanel() {
                 <PromptCard
                   key={prompt.id}
                   prompt={prompt}
-                  // onView={(prompt) => {
-                  //   setSelectedPrompt(prompt);
-                  //   setIsPreviewOpen(true);
-                  // }}
-                  // onVote={handleVote}
+                  onView={handleViewPrompt}
                   onDelete={
                     activeTab === "my-prompts" ? handleDeletePrompt : undefined
                   }
-                  isOwner={activeTab === "my-prompts"}
-                  // hasVoted={prompt.hasVoted}
+                  isOwner={session?.user?.id === prompt.authorId}
+                  className="w-full"
                 />
               ))}
             </div>
@@ -698,14 +652,7 @@ export function ExplorePanel() {
         <PromptPreviewModal
           prompt={selectedPrompt}
           open={isPreviewOpen}
-          onOpenChange={(open) => {
-            if (!open) {
-              setIsPreviewOpen(false);
-              // Delay clearing selected prompt to avoid UI flash
-              setTimeout(() => setSelectedPrompt(null), 300);
-            }
-          }}
-          onVote={handleVote}
+          onOpenChange={setIsPreviewOpen}
         />
       )}
     </div>

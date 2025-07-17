@@ -1,6 +1,5 @@
 // src/components/prompts/PromptCard.tsx
 import { useState } from "react";
-// import { MessageCircle, ThumbsUp, User, Trash2, Loader2 } from "lucide-react";
 import { User, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -11,15 +10,11 @@ interface PromptCardProps {
   /** The prompt data to display */
   prompt: UIPrompt;
   /** Callback when the card is clicked to view the prompt */
-  // onView: (prompt: UIPrompt) => void;
-  /** Callback when the vote button is clicked */
-  // onVote: (promptId: string) => Promise<void>;
+  onView: (prompt: UIPrompt) => void;
   /** Callback when the delete button is clicked */
   onDelete?: (promptId: string) => Promise<void>;
   /** Whether the current user is the owner of this prompt */
   isOwner?: boolean;
-  /** Whether the current user has already voted for this prompt */
-  // hasVoted?: boolean;
   /** Optional class name for the root element */
   className?: string;
 }
@@ -27,46 +22,21 @@ interface PromptCardProps {
 export function PromptCard({
   prompt,
   isOwner = false,
-  // onVote = async () => {},
   onDelete,
-  // onView,
+  onView,
   className,
 }: PromptCardProps) {
-  // const [isVoting, setIsVoting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  // const [hasVoted, setHasVoted] = useState(false);
 
   const handleView = (e: React.MouseEvent) => {
     // Only trigger view if the click is on the card itself, not on interactive elements
     if (!(e.target instanceof HTMLButtonElement)) {
       e.preventDefault();
       e.stopPropagation();
-      // onView?.(prompt);
+      onView?.(prompt);
     }
   };
-
-  // Commenting out vote handler
-  // const handleVote = async (e: React.MouseEvent) => {
-  //   e.preventDefault();
-  //   e.stopPropagation();
-
-  //   if (hasVoted || !prompt.id) {
-  //     return;
-  //   }
-
-  //   setIsVoting(true);
-
-  //   try {
-  //     await onVote(prompt.id);
-  //     setHasVoted(true);
-  //   } catch (error) {
-  //     console.error("Error voting for prompt:", error);
-  //     toast.error("Failed to vote for prompt");
-  //   } finally {
-  //     setIsVoting(false);
-  //   }
-  // };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -89,10 +59,6 @@ export function PromptCard({
       setShowDeleteConfirm(false);
     }
   };
-
-  // Commenting out vote and comment counts
-  // const voteCount = prompt.votes?.length || 0;
-  // const commentCount = prompt.comments?.length || 0;
 
   const formattedDate = formatDistanceToNow(
     typeof prompt.createdAt === "string"
@@ -120,7 +86,7 @@ export function PromptCard({
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          // onView?.(prompt);
+          onView?.(prompt);
         }
       }}
     >
@@ -168,12 +134,6 @@ export function PromptCard({
             {prompt.description}
           </div>
         )}
-
-        {/* Footer with stats */}
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
-          {/* Commenting out all footer content as it's not needed for MVP */}
-          {/* Views counter was here */}
-        </div>
       </div>
 
       {/* Delete Confirmation Dialog */}
@@ -188,25 +148,29 @@ export function PromptCard({
             <div className="flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setShowDeleteConfirm(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDeleteConfirm(false);
+                }}
                 className="px-4 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={handleConfirmDelete}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleConfirmDelete();
+                }}
                 disabled={isDeleting}
                 className="px-4 py-2 text-sm font-medium rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 flex items-center gap-2"
               >
                 {isDeleting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Deleting...
-                  </>
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  "Delete"
+                  <Trash2 className="h-4 w-4" />
                 )}
+                <span>Delete</span>
               </button>
             </div>
           </div>
