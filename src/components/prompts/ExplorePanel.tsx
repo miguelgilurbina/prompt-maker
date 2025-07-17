@@ -138,107 +138,27 @@ export function ExplorePanel() {
   const processPromptData = useCallback(
     (apiPrompt: ApiPrompt): UIPrompt => {
       try {
-        console.log("Processing prompt data:", apiPrompt);
-
-        // Handle different API response structures
         const author = apiPrompt.author || null;
         const votes = apiPrompt.votes || [];
         const comments = apiPrompt.comments || [];
         const voteCount = apiPrompt.voteCount || votes.length || 0;
         const commentCount = apiPrompt.commentCount || comments.length || 0;
-        // const views = apiPrompt.views || 0;
-
-        // Get a valid category
         const category = getValidCategory(apiPrompt.category) as PromptCategory;
 
-        // Helper function to safely get author info from comment
-        // const getCommentAuthorInfo = (comment: unknown) => {
-        //   if (typeof comment !== "object" || comment === null) {
-        //     return {
-        //       name: "Anonymous",
-        //       image: null,
-        //       id: "",
-        //       author: null,
-        //     };
-        //   }
+        const isOwner =
+          String(session?.user?.id) === String(apiPrompt.authorId);
 
-        //   return {
-        //     name:
-        //       hasProperty(comment, "author") &&
-        //       comment.author &&
-        //       typeof comment.author === "object" &&
-        //       hasProperty(comment.author, "name")
-        //         ? String(comment.author.name) || "Anonymous"
-        //         : hasProperty(comment, "authorName")
-        //         ? String(comment.authorName) || "Anonymous"
-        //         : "Anonymous",
-        //     image:
-        //       hasProperty(comment, "author") &&
-        //       comment.author &&
-        //       typeof comment.author === "object" &&
-        //       hasProperty(comment.author, "image")
-        //         ? (comment.author.image as string | null)
-        //         : hasProperty(comment, "authorImage")
-        //         ? (comment.authorImage as string | null)
-        //         : null,
-        //     id: hasProperty(comment, "authorId")
-        //       ? String(comment.authorId)
-        //       : hasProperty(comment, "author") &&
-        //         comment.author &&
-        //         typeof comment.author === "object" &&
-        //         hasProperty(comment.author, "id")
-        //       ? String(comment.author.id)
-        //       : "",
-        //     author: hasProperty(comment, "author")
-        //       ? (comment.author as User | null)
-        //       : null,
-        //   };
-        // };
-
-        // Helper function to safely get vote info
-        // const getVoteInfo = (vote: unknown) => {
-        //   if (typeof vote !== "object" || vote === null) {
-        //     return {
-        //       id: `temp-${Math.random().toString(36).substr(2, 9)}`,
-        //       userId: "",
-        //       createdAt: new Date(),
-        //       updatedAt: new Date(),
-        //       user: null,
-        //     };
-        //   }
-
-        //   const createdAt = hasProperty(vote, "createdAt")
-        //     ? new Date(String(vote.createdAt))
-        //     : new Date();
-
-        //   return {
-        //     id: hasProperty(vote, "id")
-        //       ? String(vote.id)
-        //       : `temp-${Math.random().toString(36).substr(2, 9)}`,
-        //     userId: hasProperty(vote, "userId") ? String(vote.userId) : "",
-        //     createdAt,
-        //     updatedAt: hasProperty(vote, "updatedAt")
-        //       ? new Date(String(vote.updatedAt))
-        //       : createdAt,
-        //     user: hasProperty(vote, "user") ? (vote.user as User | null) : null,
-        //   };
-        // };
-
-        // Create UIPrompt with proper type safety
         const uiPrompt: UIPrompt = {
           id: apiPrompt.id,
           title: apiPrompt.title,
           description: apiPrompt.description || null,
           content: apiPrompt.content,
           category,
-          // tags: Array.isArray(apiPrompt.tags) ? apiPrompt.tags : [], // Removed as not part of UIPrompt type
           isPublic: !!apiPrompt.isPublic,
           authorId: apiPrompt.authorId,
-          // authorName: author?.name || "Anonymous", // Removed as not part of UIPrompt type
           createdAt: new Date(apiPrompt.createdAt || Date.now()),
           updatedAt: new Date(apiPrompt.updatedAt || Date.now()),
-          // variables: (Array.isArray(apiPrompt.variables) ? apiPrompt.variables : []).map(...), // Removed as not part of UIPrompt type
-          isOwner: session?.user?.id === apiPrompt.authorId,
+          isOwner,
           hasVoted:
             votes.some((vote) => {
               const voteData = vote as { userId?: unknown };
@@ -249,48 +169,6 @@ export function ExplorePanel() {
             }) || false,
           voteCount,
           commentCount,
-          // views,
-          // Map comments with proper type casting
-          // comments: (Array.isArray(comments) ? comments : []).map((comment) => {
-          //   const authorInfo = getCommentAuthorInfo(comment);
-          //   const createdAt = hasProperty(comment, "createdAt")
-          //     ? new Date(String(comment.createdAt))
-          //     : new Date();
-          //   const updatedAt = hasProperty(comment, "updatedAt")
-          //     ? new Date(String(comment.updatedAt))
-          //     : createdAt;
-
-          //   return {
-          //     id: hasProperty(comment, "id")
-          //       ? String(comment.id)
-          //       : `temp-${Math.random().toString(36).substr(2, 9)}`,
-          //     content: hasProperty(comment, "content")
-          //       ? String(comment.content)
-          //       : "",
-          //     authorId: authorInfo.id,
-          //     authorName: authorInfo.name,
-          //     authorImage: authorInfo.image,
-          //     promptId: apiPrompt.id,
-          //     createdAt,
-          //     updatedAt,
-          //     author: authorInfo.author,
-          //     prompt: { id: apiPrompt.id },
-          //   };
-          // }) as any,
-          // // Map votes with proper type casting
-          // votes: (Array.isArray(votes) ? votes : []).map((vote) => {
-          //   const voteInfo = getVoteInfo(vote);
-
-          //   return {
-          //     id: voteInfo.id,
-          //     userId: voteInfo.userId,
-          //     promptId: apiPrompt.id,
-          //     createdAt: voteInfo.createdAt,
-          //     updatedAt: voteInfo.updatedAt,
-          //     user: voteInfo.user,
-          //     prompt: { id: apiPrompt.id },
-          //   };
-          // }) as any,
           authorInfo: author
             ? {
                 id: author.id,
@@ -301,11 +179,9 @@ export function ExplorePanel() {
             : null,
         };
 
-        console.log("Processed prompt:", uiPrompt);
         return uiPrompt;
       } catch (error) {
         console.error("Error processing prompt data:", error, apiPrompt);
-        // Return a valid UIPrompt with default values in case of error
         const errorId =
           typeof apiPrompt?.id === "string" ? apiPrompt.id : "error";
         const errorTitle =
@@ -321,16 +197,9 @@ export function ExplorePanel() {
           category: "general" as PromptCategory,
           isPublic: false,
           authorId: "",
-          // authorName: "System", // Removed as not part of UIPrompt type
           createdAt: new Date(),
           updatedAt: new Date(),
           isOwner: false,
-          // hasVoted: false,
-          // voteCount: 0,
-          // commentCount: 0,
-          // views: 0,
-          // comments: [],
-          // votes: [],
           authorInfo: null,
         };
       }
@@ -382,11 +251,6 @@ export function ExplorePanel() {
         }
 
         const responseData = await response.json();
-        console.log("Raw API Response:", responseData);
-
-        if (!isMountedRef.current) return;
-
-        // Handle different response structures
         const promptsData = responseData.data || responseData.prompts || [];
         const totalItems =
           responseData.total ||
@@ -394,17 +258,8 @@ export function ExplorePanel() {
         const calculatedTotalPages =
           Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
 
-        console.log("Processed data:", {
-          promptsData,
-          totalItems,
-          calculatedTotalPages,
-          isArray: Array.isArray(promptsData),
-        });
-
-        // Process prompts if we have an array
         let processedPrompts: UIPrompt[] = [];
         if (Array.isArray(promptsData)) {
-          console.log(`Processing ${promptsData.length} prompts...`);
           processedPrompts = promptsData
             .map((prompt) => {
               try {
@@ -417,19 +272,12 @@ export function ExplorePanel() {
             .filter((prompt): prompt is UIPrompt => prompt !== null);
         }
 
-        console.log(
-          `Successfully processed ${processedPrompts.length} prompts`
-        );
-
-        // Update state with the new data
         setPrompts((prev) => {
           const newPrompts =
             page === 1 ? processedPrompts : [...prev, ...processedPrompts];
-          console.log(`Updating prompts: ${newPrompts.length} total prompts`);
           return newPrompts;
         });
 
-        console.log(`Setting total pages to: ${calculatedTotalPages}`);
         setTotalPages(calculatedTotalPages);
       } catch (error) {
         if (!isMountedRef.current) return;
@@ -465,12 +313,10 @@ export function ExplorePanel() {
           throw new Error(error.error || "Failed to delete prompt");
         }
 
-        // Remove the deleted prompt from the local state
         setPrompts((prevPrompts) =>
           prevPrompts.filter((p) => p.id !== promptId)
         );
 
-        // If we're on the last page with one item, go back a page
         if (prompts.length === 1 && page > 1) {
           setPage((prevPage) => prevPage - 1);
         }
@@ -509,7 +355,7 @@ export function ExplorePanel() {
   // Handle page changes
   useEffect(() => {
     if (page > 1) {
-      fetchPrompts();
+      fetchPrompts(true);
     }
   }, [page, fetchPrompts]);
 
