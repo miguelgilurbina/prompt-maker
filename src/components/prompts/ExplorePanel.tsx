@@ -1,9 +1,9 @@
 // src/components/prompts/ExplorePanel.tsx
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { debounce } from "lodash";
+import { useDebouncedCallback } from "use-debounce";
 import { Search, Loader2, AlertCircle } from "lucide-react";
 
 // UI Components
@@ -116,16 +116,12 @@ export function ExplorePanel() {
   const isMountedRef = useRef(true);
 
   // Debounced search with cleanup
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((value: string) => {
-        if (isMountedRef.current) {
-          setSearchQuery(value);
-          setPage(1); // Reset page when searching
-        }
-      }, DEBOUNCE_DELAY),
-    []
-  );
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    if (isMountedRef.current) {
+      setSearchQuery(value);
+      setPage(1); // Reset page when searching
+    }
+  }, DEBOUNCE_DELAY);
 
   // Ensure a valid category value
   const getValidCategory = (category: string): ValidCategory => {
