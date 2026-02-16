@@ -20,7 +20,7 @@ export const promptSchema = z.object({
     .trim(),
     
   category: z.enum(['creative-writing', 'technical', 'business', 'academic', 'general', 'custom'], {
-    errorMap: () => ({ message: 'Please select a valid category' })
+    error: 'Please select a valid category'
   }),
   
   tags: z.array(z.string().max(20, 'Tag cannot exceed 20 characters'))

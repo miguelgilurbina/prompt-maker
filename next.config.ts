@@ -21,6 +21,8 @@ const nextConfig: NextConfig = {
   // External packages for server components
   serverExternalPackages: [
     "@prisma/client",
+    "@prisma/adapter-pg",
+    "pg",
     "@auth/prisma-adapter"
   ],
   

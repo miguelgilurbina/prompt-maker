@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client"
 import { PrismaAdapter } from "@auth/prisma-adapter"
+import { prisma } from "@/lib/prisma"
 import type { DefaultSession, Session, User } from "next-auth"
 import type { JWT } from "next-auth/jwt"
 import type { NextAuthOptions } from "next-auth"
@@ -32,8 +32,6 @@ declare module "next-auth/jwt" {
     picture?: string | null
   }
 }
-
-const prisma = new PrismaClient()
 
 export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
