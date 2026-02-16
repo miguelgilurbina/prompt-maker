@@ -7,7 +7,8 @@
       "Bash(npx @tailwindcss/upgrade:*)",
       "Bash(npm test:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm install:*)"
     ]
   }
 }
