@@ -13,7 +13,7 @@ export default function TestPage() {
       <div className="grid gap-6">
         <ConnectionTest />
 
-        <div className="p-5 border border-gray-300 rounded-lg bg-white shadow-sm">
+        <div className="p-5 border border-gray-300 rounded-lg bg-white shadow-xs">
           <h3 className="text-xl font-bold mb-3">
             Enlaces Rápidos para Pruebas
           </h3>
@@ -34,7 +34,7 @@ export default function TestPage() {
           </div>
         </div>
 
-        <div className="p-5 border border-gray-300 rounded-lg bg-white shadow-sm">
+        <div className="p-5 border border-gray-300 rounded-lg bg-white shadow-xs">
           <h3 className="text-xl font-bold mb-3">Checklist de Verificación</h3>
           <ul className="space-y-2">
             <li className="flex items-center gap-2">

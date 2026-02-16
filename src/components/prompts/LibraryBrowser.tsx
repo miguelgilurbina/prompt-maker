@@ -112,7 +112,7 @@
 //               {filteredInstructions.map((instruction) => (
 //                 <Card
 //                   key={instruction.id}
-//                   className="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-sm overflow-hidden bg-card/80 hover:bg-card"
+//                   className="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-xs overflow-hidden bg-card/80 hover:bg-card"
 //                   onClick={() => onSelect(instruction)}
 //                 >
 //                   <CardContent className="p-4">
@@ -144,7 +144,7 @@
 //                           ))}
 //                         </div>
 //                       </div>
-//                       <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+//                       <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
 //                     </div>
 //                   </CardContent>
 //                 </Card>

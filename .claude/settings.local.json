@@ -4,7 +4,10 @@
       "Bash(npm run build:*)",
       "Bash(npx prisma generate:*)",
       "Bash(node -e:*)",
-      "Bash(npx @tailwindcss/upgrade:*)"
+      "Bash(npx @tailwindcss/upgrade:*)",
+      "Bash(npm test:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

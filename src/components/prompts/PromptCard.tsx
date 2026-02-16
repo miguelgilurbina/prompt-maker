@@ -95,7 +95,7 @@ export function PromptCard({
         <button
           type="button"
           onClick={handleDeleteClick}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm text-destructive opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-destructive/50 z-10"
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-xs text-destructive opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 focus:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-destructive/50 z-10"
           disabled={isDeleting}
           aria-label="Delete prompt"
         >

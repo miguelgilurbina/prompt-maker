@@ -73,7 +73,7 @@ const ConnectionTest = () => {
   };
 
   return (
-    <div className="p-5 border border-gray-300 rounded-lg m-5 bg-white shadow-sm">
+    <div className="p-5 border border-gray-300 rounded-lg m-5 bg-white shadow-xs">
       <h3 className="text-xl font-bold mb-3">Estado de Conexiones</h3>
       <div className="space-y-2">
         <p className="flex items-center gap-2">

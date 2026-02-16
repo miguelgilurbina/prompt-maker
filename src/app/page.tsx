@@ -98,9 +98,9 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6"></div>
-      <div className="flex flex-grow overflow-hidden">
+      <div className="flex grow overflow-hidden">
         {/* Prompt Builder - Takes remaining space */}
-        <div className="flex-grow h-full ml-2 relative">
+        <div className="grow h-full ml-2 relative">
           {isSaving && (
             <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
               <div className="flex flex-col items-center gap-2 bg-background p-6 rounded-lg shadow-lg border">
