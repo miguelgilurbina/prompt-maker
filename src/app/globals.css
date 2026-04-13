@@ -110,39 +110,79 @@
 }
 
 /* --------------------------------- */
-/* Variables y Configuración Base    */
+/* Variables — Dusk & Ember (default) */
 /* --------------------------------- */
 @layer base {
   :root {
-    /* Colores Base */
-    --primary: 220 14% 95%;
-    --secondary: 0 0% 15%;
-    --accent: 0 69% 42%;
-    --background: 0 0% 98%;
-    --text: 0 0% 20%;
-    --foreground: 0 0% 20%;
+    /* Core surfaces */
+    --background: 240 33% 6%;
+    --foreground: 250 40% 96%;
 
-    /* Tipografía Base */
-    --font-sans: 'TAZUGANE GOTHIC', sans-serif;
+    --card: 240 27% 9%;
+    --card-foreground: 250 40% 96%;
+
+    /* Brand — violeta suave */
+    --primary: 263 93% 76%;
+    --primary-foreground: 240 33% 6%;
+
+    /* Secondary surface */
+    --secondary: 240 25% 13%;
+    --secondary-foreground: 250 40% 96%;
+
+    /* Muted */
+    --muted: 240 20% 15%;
+    --muted-foreground: 246 10% 44%;
+
+    /* Accent — naranja caliente */
+    --accent: 25 97% 60%;
+    --accent-foreground: 240 33% 6%;
+
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 250 40% 96%;
+
+    /* Borders & inputs */
+    --border: 240 20% 19%;
+    --input: 240 20% 19%;
+    --ring: 263 93% 76%;
+
+    /* Popover */
+    --popover-background: 240 25% 13%;
+    --popover-foreground: 250 40% 96%;
+    --popover-border: 240 20% 19%;
+    --popover-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+    /* Texto */
+    --text: 250 40% 96%;
+
+    /* Tipografía */
+    --font-sans: 'Inter', sans-serif;
     --font-mono: 'IBM Plex Mono', monospace;
 
-    /* UI Components Base */
-    --button-bg: var(--background);
-    --button-text: var(--text);
-    --button-border: var(--primary);
-    --button-hover: var(--secondary);
+    /* UI Components */
+    --button-bg: hsl(263 93% 76%);
+    --button-text: hsl(240 33% 6%);
+    --button-border: hsl(263 93% 76%);
+    --button-hover: hsl(263 93% 82%);
     --button-glow: none;
 
-    /* Layout Base */
+    /* Layout */
     --spacing-unit: 1rem;
-    --radius: 4px;
-    --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --radius: 8px;
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 
-    /* Variables de Popover */
-    --popover-background: var(--background);
-    --popover-foreground: var(--text);
-    --popover-border: var(--primary);
-    --popover-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+    /* Brand extras */
+    --brand-violet: 263 93% 76%;
+    --brand-orange: 25 97% 60%;
+    --brand-sky: 199 89% 60%;
+    --brand-success: 160 68% 52%;
+
+    /* Charts */
+    --chart-1: 263 93% 76%;
+    --chart-2: 25 97% 60%;
+    --chart-3: 199 89% 60%;
+    --chart-4: 160 68% 52%;
+    --chart-5: 330 81% 60%;
   }
 
   /* Japanese Minimal Theme */
@@ -258,7 +298,7 @@
     .card-wa {
       border-color: hsl(var(--primary) / 0.5);
       box-shadow: 0 0 10px hsl(var(--primary) / 0.2);
-      
+
       &:hover {
         box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
       }
@@ -274,4 +314,109 @@
       }
     }
   }
+}
+
+/* ================================= */
+/* Wizard Mascot Animations (v2)     */
+/* Shared by Wizard + WizardPro      */
+/* ================================= */
+
+/* ── Float (default, waving) ──── */
+@keyframes wiz-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+.wiz-float { animation: wiz-float 3s ease-in-out infinite; }
+
+/* Wave arm bounces up */
+@keyframes wiz-arm-wave {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+.wiz-float .wiz-wave-arm,
+.wiz-float .wiz-wave-hand { animation: wiz-arm-wave 0.75s ease-in-out infinite; }
+
+/* ── Casting ───────────────────── */
+@keyframes wiz-cast-anim {
+  0%, 100% { transform: translateY(0px)  scale(1);    }
+  35%       { transform: translateY(-8px) scale(1.02); }
+  70%       { transform: translateY(-4px) scale(1.01); }
+}
+.wiz-cast-anim { animation: wiz-cast-anim 1.4s ease-in-out infinite; }
+
+/* Casting letters fly up and fade */
+@keyframes wiz-cast-letter-fly {
+  0%   { opacity: 0.90; transform: translate(0, 0)      scale(1);   }
+  100% { opacity: 0;    transform: translate(6px, -18px) scale(0.5); }
+}
+.wiz-cast-anim .wiz-cast-1 { animation: wiz-cast-letter-fly 1.0s ease-out infinite; }
+.wiz-cast-anim .wiz-cast-2 { animation: wiz-cast-letter-fly 1.3s ease-out infinite 0.25s; }
+.wiz-cast-anim .wiz-cast-3 { animation: wiz-cast-letter-fly 1.6s ease-out infinite 0.50s; }
+
+/* ── Thinking ──────────────────── */
+@keyframes wiz-think-sway {
+  0%, 100% { transform: translateY(0px)  rotate(0deg);  }
+  30%       { transform: translateY(-4px) rotate(-1.5deg); }
+  70%       { transform: translateY(-4px) rotate(1.5deg);  }
+}
+.wiz-think-sway { animation: wiz-think-sway 3.2s ease-in-out infinite; }
+
+/* Thinking letters pop in sequence */
+@keyframes wiz-think-pop {
+  0%, 50%, 100% { opacity: 0; transform: scale(0.3) translateY(4px); }
+  75%            { opacity: 1; transform: scale(1)   translateY(0);   }
+}
+.wiz-think-sway .wiz-think-1 { animation: wiz-think-pop 2.4s ease-in-out infinite; }
+.wiz-think-sway .wiz-think-2 { animation: wiz-think-pop 2.4s ease-in-out infinite 0.5s; }
+.wiz-think-sway .wiz-think-3 { animation: wiz-think-pop 2.4s ease-in-out infinite 1.0s; }
+
+/* ── Celebrating ───────────────── */
+@keyframes wiz-celebrate {
+  0%, 100% { transform: translateY(0px)   rotate(0deg);  }
+  20%       { transform: translateY(-14px) rotate(-4deg); }
+  40%       { transform: translateY(-7px)  rotate(4deg);  }
+  60%       { transform: translateY(-11px) rotate(-2deg); }
+  80%       { transform: translateY(-5px)  rotate(2deg);  }
+}
+.wiz-celebrate { animation: wiz-celebrate 0.9s ease-in-out infinite; }
+
+/* Celebration letters burst outward */
+@keyframes wiz-cel-burst {
+  0%   { opacity: 0.90; transform: scale(1)   translateY(0); }
+  60%  { opacity: 0.50; transform: scale(1.3) translateY(-6px); }
+  100% { opacity: 0;    transform: scale(0.6) translateY(-14px); }
+}
+.wiz-celebrate .wiz-cel-1 { animation: wiz-cel-burst 0.9s ease-out infinite; }
+.wiz-celebrate .wiz-cel-2 { animation: wiz-cel-burst 1.1s ease-out infinite 0.15s; }
+.wiz-celebrate .wiz-cel-3 { animation: wiz-cel-burst 1.0s ease-out infinite 0.30s; }
+.wiz-celebrate .wiz-cel-4 { animation: wiz-cel-burst 1.2s ease-out infinite 0.45s; }
+
+/* ── Sleeping ──────────────────── */
+@keyframes wiz-sleep {
+  0%, 100% { transform: translateY(0)  scaleY(1);    }
+  50%       { transform: translateY(3px) scaleY(0.97); }
+}
+.wiz-sleep {
+  animation: wiz-sleep 4s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes wiz-zzz-rise {
+  0%   { opacity: 0.80; transform: translateY(0)    scale(1);   }
+  100% { opacity: 0;    transform: translateY(-14px) scale(1.5); }
+}
+.wiz-sleep .wiz-zzz-1 { animation: wiz-zzz-rise 2.2s ease-out infinite; }
+.wiz-sleep .wiz-zzz-2 { animation: wiz-zzz-rise 2.2s ease-out infinite 0.6s; }
+.wiz-sleep .wiz-zzz-3 { animation: wiz-zzz-rise 2.2s ease-out infinite 1.2s; }
+
+/* ── Scroll reveal ─────────────── */
+.wiz-reveal-out {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.wiz-reveal-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.65s ease, transform 0.65s ease;
 }

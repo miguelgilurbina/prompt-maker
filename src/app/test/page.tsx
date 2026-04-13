@@ -2,6 +2,8 @@
 // src/app/test/page.tsx
 import ConnectionTest from "@/components/tests/ConnectionTest";
 import Link from "next/link";
+import Wizard from "@/components/mascot/Wizard";
+import WizardPro from "@/components/mascot/WizardPro";
 
 export default function TestPage() {
   return (
@@ -31,6 +33,37 @@ export default function TestPage() {
             >
               Ver Health Check API
             </Link>
+          </div>
+        </div>
+
+        {/* Vista previa del mago */}
+        <div className="p-5 border border-gray-300 rounded-lg bg-white shadow-xs space-y-8">
+          <div>
+            <h3 className="text-xl font-bold mb-1">Wizard — Level 2 (pixel art · crispEdges)</h3>
+            <p className="text-xs text-gray-400 mb-4 font-mono">128×128 viewBox · all rects · shapeRendering=crispEdges</p>
+            <div className="flex flex-wrap gap-8 items-end">
+              {(["default", "casting", "thinking", "celebrating", "waving", "sleeping"] as const).map((v) => (
+                <div key={v} className="flex flex-col items-center gap-2">
+                  <Wizard variant={v} size={100} />
+                  <span className="text-xs text-gray-500 font-mono">{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <hr className="border-gray-200" />
+
+          <div>
+            <h3 className="text-xl font-bold mb-1">WizardPro — Level 3 (smooth · polygon hat · glow)</h3>
+            <p className="text-xs text-gray-400 mb-4 font-mono">128×128 viewBox · polygon hat · SVG filter glow · flowing robe · belt</p>
+            <div className="flex flex-wrap gap-8 items-end">
+              {(["default", "casting", "thinking", "celebrating", "waving", "sleeping"] as const).map((v) => (
+                <div key={v} className="flex flex-col items-center gap-2">
+                  <WizardPro variant={v} size={100} />
+                  <span className="text-xs text-gray-500 font-mono">{v}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

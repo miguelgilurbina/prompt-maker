@@ -1,102 +1,84 @@
 import Link from "next/link";
 
+const NAV_GROUPS = [
+  {
+    label: "Servicios",
+    links: [
+      { href: "/servicios#estrategia", label: "Estrategia de producto" },
+      { href: "/servicios#desarrollo", label: "Desarrollo a medida" },
+      { href: "/servicios#web-agency", label: "Web Agency con IA" },
+      { href: "/servicios#prompts", label: "Prompt Engineering" },
+      { href: "/servicios#visual", label: "Identidad visual" },
+    ],
+  },
+  {
+    label: "Proyectos",
+    links: [
+      { href: "/portafolio", label: "Portafolio" },
+      { href: "/bias", label: "Bias Encyclopedia" },
+      { href: "/lab", label: "Prompt Library" },
+    ],
+  },
+  {
+    label: "Contacto",
+    links: [
+      { href: "/contacto", label: "Trabajemos juntos" },
+      { href: "https://www.instagram.com/promptmaker22/", label: "Instagram", external: true },
+      { href: "https://github.com/miguelgilurbina/prompt-maker", label: "GitHub", external: true },
+    ],
+  },
+];
+
 export function Footer() {
   return (
-    <footer className="mt-auto">
-      <div className="container mx-auto px-4 py-8">
-        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-8"> */}
-        {/* Columna 1 */}
-        {/* <div>
-            <h3 className="font-bold mb-4">Prompt Maker</h3>
-            <p className="text-sm text-muted-foreground">
-              Create, manage, and organize your AI prompts efficiently.
+    <footer className="border-t border-border/40 mt-auto">
+      <div className="container mx-auto px-6 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+
+          {/* Brand */}
+          <div className="md:col-span-1">
+            <Link href="/" className="inline-flex items-center gap-2 mb-4 group">
+              <span className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                Prompt Maker
+              </span>
+            </Link>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+              Consultoría de software, producto e IA para negocios que quieren escalar.
             </p>
-          </div> */}
-
-        {/* Columna 2 */}
-        {/* <div>
-            <h4 className="font-semibold mb-4">Product</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/features" className="hover:text-primary">
-                  Features
-                </Link>
-              </li>
-              <li>
-                <Link href="/templates" className="hover:text-primary">
-                  Templates
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="hover:text-primary">
-                  Pricing
-                </Link>
-              </li>
-            </ul>
-          </div> */}
-
-        {/* Columna 3 */}
-        {/* <div>
-            <h4 className="font-semibold mb-4">Resources</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/docs" className="hover:text-primary">
-                  Documentation
-                </Link>
-              </li>
-              <li>
-                <Link href="/guides" className="hover:text-primary">
-                  Guides
-                </Link>
-              </li>
-              <li>
-                <Link href="/api" className="hover:text-primary">
-                  API
-                </Link>
-              </li>
-            </ul>
-          </div> */}
-
-        {/* Columna 4 */}
-        {/* <div>
-            <h4 className="font-semibold mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/privacy" className="hover:text-primary">
-                  Privacy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="hover:text-primary">
-                  Terms
-                </Link>
-              </li>
-            </ul>
           </div>
-        </div> */}
 
-        <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground order-2 md:order-1 mt-4 md:mt-0">
-            © {new Date().getFullYear()} Prompt Maker. All rights reserved.
+          {/* Nav groups */}
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label}>
+              <h4 className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-4">
+                {group.label}
+              </h4>
+              <ul className="space-y-2.5">
+                {group.links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      target={"external" in link && link.external ? "_blank" : undefined}
+                      rel={"external" in link && link.external ? "noopener noreferrer" : undefined}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/40 pt-8">
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} Prompt Maker. Todos los derechos reservados.
           </p>
-          <div className="flex space-x-6 order-1 md:order-2">
-            <Link
-              href="https://www.instagram.com/promptmaker22/"
-              className="text-muted-foreground hover:text-primary"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Instagram
-            </Link>
-            <Link
-              href="https://github.com/miguelgilurbina/prompt-maker"
-              className="text-muted-foreground hover:text-primary"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              GitHub
-            </Link>
-          </div>
+          <p className="text-xs text-muted-foreground/60 font-mono">
+            Construido con IA — desplegado con propósito.
+          </p>
         </div>
       </div>
     </footer>

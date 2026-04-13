@@ -23,11 +23,13 @@ interface ThemeProviderProps {
   initialTheme: Theme;
 }
 
+// v2 key — ignores old saved themes from previous version
+const THEME_STORAGE_KEY = "pm-theme-v2";
+
 export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
-  // Inicializar tema con persistencia
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== "undefined") {
-      const savedTheme = localStorage.getItem("current-theme");
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
       if (savedTheme) {
         try {
           return JSON.parse(savedTheme) as Theme;
@@ -54,31 +56,34 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
     root.classList.add("theme-transition");
 
     // Aplicar variables CSS
-    const cssVariables = {
-      // Colores
+    const cssVariables: Record<string, string> = {
       "--primary": theme.colors.primary,
       "--secondary": theme.colors.secondary,
       "--accent": theme.colors.accent,
       "--background": theme.colors.background,
       "--text": theme.colors.text,
-      "--foreground": theme.colors.text, // Añadido para compatibilidad
-
-      // Fuentes
+      "--foreground": theme.colors.text,
       "--font-sans": theme.fonts.sans,
       "--font-mono": theme.fonts.mono,
-
-      // Otros
       "--spacing": theme.spacing,
-      "--radius": theme.radiuses,
+      "--card": theme.colors.secondary,
+      "--card-foreground": theme.colors.text,
+      "--muted": theme.colors.secondary,
+      "--muted-foreground": theme.colors.text,
+      "--border": theme.colors.secondary,
+      "--input": theme.colors.secondary,
+      "--ring": theme.colors.primary,
+      "--popover-background": theme.colors.popover.background,
+      "--popover-foreground": theme.colors.popover.foreground,
+      "--popover-border": theme.colors.popover.border,
     };
 
-    // Aplicar variables
     Object.entries(cssVariables).forEach(([key, value]) => {
       root.style.setProperty(key, value);
     });
 
     // Persistir tema
-    localStorage.setItem("current-theme", JSON.stringify(theme));
+    localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(theme));
 
     // Cleanup
     return () => {

@@ -2,34 +2,36 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-// import { usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { ThemeToggle } from "@/components/themes/ThemeThoggle";
 import { Button } from "@/components/ui/button";
-import { Github, Menu, X } from "lucide-react";
+import { Menu, X, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
+
+const NAV_LINKS = [
+  { href: "/servicios", label: "Servicios" },
+  { href: "/portafolio", label: "Portafolio" },
+  { href: "/lab", label: "Lab" },
+  { href: "/bias", label: "Bias" },
+  { href: "/contacto", label: "Contacto" },
+];
 
 export function Header() {
   const { data: session, status } = useSession();
-  // const pathname = usePathname();
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const isLoading = status === "loading";
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   const handleSignOut = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -43,141 +45,111 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 transition-all",
-        isScrolled && "shadow-xs"
+        "sticky top-0 z-50 w-full transition-all duration-300",
+        isScrolled
+          ? "border-b border-border/60 bg-background/90 backdrop-blur-md"
+          : "bg-transparent"
       )}
     >
-      <div className="container flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between px-6">
+
         {/* Logo */}
-        <div className="flex items-center">
-          <Link
-            href="/"
-            className="mr-8 flex items-center space-x-2 font-bold"
-            onClick={closeMobileMenu}
-          >
-            <span>Prompt Maker</span>
-          </Link>
+        <Link href="/" className="flex items-center gap-2 group">
+          <span className="text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
+            Prompt Maker
+          </span>
+          <span className="hidden sm:inline-flex items-center rounded-full border border-primary/30 px-2 py-0.5 text-[10px] font-medium text-primary/80 tracking-wider uppercase">
+            Consultora
+          </span>
+        </Link>
 
-          {/* Desktop Navigation */}
-        </div>
-
-        <div className="flex items-center space-x-2">
-          {/* Theme Toggle */}
-          <div className="hidden md:flex">
-            <ThemeToggle />
-          </div>
-
-          {/* GitHub Link */}
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="hidden md:flex"
-          >
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-1">
+          {NAV_LINKS.map((link) => (
             <Link
-              href="https://github.com/miguelgilurbina/prompt-maker"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="GitHub repository"
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "relative px-4 py-2 text-sm font-medium transition-colors rounded-md",
+                pathname === link.href
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
             >
-              <Github className="h-5 w-5" />
+              {pathname === link.href && (
+                <span className="absolute inset-x-1 -bottom-px h-px bg-primary" />
+              )}
+              {link.label}
             </Link>
-          </Button>
+          ))}
+        </nav>
 
-          {/* Auth Buttons - Desktop */}
+        {/* Desktop right side */}
+        <div className="hidden md:flex items-center gap-3">
           {isLoading ? (
-            <div className="h-9 w-20 animate-pulse rounded-md bg-muted" />
+            <div className="h-8 w-16 animate-pulse rounded-md bg-muted" />
           ) : session ? (
-            <div className="hidden md:flex items-center space-x-2">
-              <div className="flex items-center">
-                <span className="text-sm text-muted-foreground mr-2">
-                  {session.user?.name || session.user?.email}
-                </span>
-                <Button onClick={handleSignOut} variant="ghost" size="sm">
-                  Sign out
-                </Button>
-              </div>
-            </div>
+            <>
+              <span className="text-sm text-muted-foreground">
+                {session.user?.name || session.user?.email}
+              </span>
+              <Button onClick={handleSignOut} variant="ghost" size="sm">
+                Salir
+              </Button>
+            </>
           ) : (
-            <div className="hidden md:flex items-center space-x-2">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/auth/signin">Sign in</Link>
-              </Button>
-              <Button size="sm" asChild>
-                <Link href="/auth/signup">Sign up</Link>
-              </Button>
-            </div>
-          )}
-
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="absolute inset-x-0 top-16 z-50 border-t bg-background px-4 py-2 shadow-lg md:hidden">
-          <div className="border-t pt-2">
-            {isLoading ? (
-              <div className="space-y-2">
-                <div className="h-9 w-full animate-pulse rounded-md bg-muted" />
-                <div className="h-9 w-full animate-pulse rounded-md bg-muted" />
-              </div>
-            ) : session ? (
-              <div className="space-y-2">
-                <div className="px-3 py-2 text-sm text-muted-foreground">
-                  {session.user?.name || session.user?.email}
-                </div>
-                <Button
-                  onClick={handleSignOut}
-                  variant="ghost"
-                  className="w-full justify-start px-3"
-                >
-                  Sign out
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" size="sm" asChild className="w-full">
-                  <Link href="/auth/signin" onClick={closeMobileMenu}>
-                    Sign in
-                  </Link>
-                </Button>
-                <Button size="sm" asChild className="w-full">
-                  <Link href="/auth/signup" onClick={closeMobileMenu}>
-                    Sign up
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-          <div className="mt-2 flex items-center justify-between border-t pt-2">
-            <div className="w-full">
-              <ThemeToggle />
-            </div>
-            <Button variant="ghost" size="icon" asChild className="ml-2">
-              <Link
-                href="https://github.com/miguelgilurbina/prompt-maker"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub repository"
-              >
-                <Github className="h-5 w-5" />
+            <Button size="sm" asChild className="gap-1.5">
+              <Link href="/contacto">
+                Hablemos
+                <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
-          </div>
+          )}
+        </div>
+
+        {/* Mobile toggle */}
+        <button
+          className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+        >
+          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+
+      {/* Mobile menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-border/60 bg-background/95 backdrop-blur-md">
+          <nav className="container mx-auto flex flex-col px-6 py-4 gap-1">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "px-3 py-2.5 text-sm font-medium rounded-md transition-colors",
+                  pathname === link.href
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <div className="pt-3 border-t border-border/60 mt-2">
+              {session ? (
+                <Button onClick={handleSignOut} variant="ghost" size="sm" className="w-full justify-start">
+                  Salir
+                </Button>
+              ) : (
+                <Button size="sm" asChild className="w-full gap-1.5">
+                  <Link href="/contacto">
+                    Hablemos
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </nav>
         </div>
       )}
     </header>

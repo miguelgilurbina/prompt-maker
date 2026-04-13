@@ -52,13 +52,20 @@ export async function GET(request: Request) {
       prisma.prompt.count({ where }),
     ]);
     
-    return NextResponse.json({
-      data: prompts,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    });
+    return NextResponse.json(
+      {
+        data: prompts,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
+    );
     
   } catch (error) {
     console.error('Error fetching public prompts:', error);
